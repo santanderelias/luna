@@ -51,6 +51,7 @@ function transactionHistoryVisibility() {
         transactionHistoryTableState = 1;
         varsTableState = 0;
         addTransactionTableState = 0;
+        renderTransactions();
         console.log('ran 1')
     }
     else {
@@ -112,6 +113,7 @@ function saveTransaction() {
     amountInputBox.value = ''
     transactionDate.value = ''
     inputGroupSizingSm.value = ''
+  renderTransactions();
 }
 //import export CSV
 function exportToCsv() {
@@ -134,9 +136,30 @@ function importFromCsv(csvContent) {
   console.log(transactionsArr);
 }
 //fin import/export
+function renderTransactions() {
+  const tableBody = document.getElementById('transactionHistoryVisibilityTable').getElementsByTagName('tbody')[0];
+  tableBody.innerHTML = ''; // Clear existing rows
+
+  transactionsArr.forEach((transaction, index) => {
+    const newRow = tableBody.insertRow();
+
+    const cell1 = newRow.insertCell(0);
+    const cell2 = newRow.insertCell(1);
+    const cell3 = newRow.insertCell(2);
+    const cell4 = newRow.insertCell(3);
+    const cell5 = newRow.insertCell(4);
+
+    cell1.innerHTML = index + 1;
+    cell2.innerHTML = transaction.date;
+    cell3.innerHTML = transaction.type;
+    cell4.innerHTML = transaction.amount;
+    cell5.innerHTML = transaction.notes;
+  });
+}
 window.onload = () => {
     setTimeout(() => {
     document.getElementById('amountInputBox').focus();console.log('done')
     }, 1000);
+    renderTransactions();
 };
 loadDB();

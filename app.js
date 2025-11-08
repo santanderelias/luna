@@ -14,7 +14,7 @@ let transactionsArr = [];
 let transactionHistoryTableState = 0;
 let varsTableState = 0;
 let addTransactionTableState = 0;
-console.log('Todo \n1_Prevent empty values or prevent the process on transaction.\n2_Fill tables with transactions.\n3_Develop settings section.\n4_CSV import/export.\n5_Projections logic.')
+console.log('Todo \n1_.\n2_Fill transaction table with transactions.\n3_Develop settings section.\n4_CSV import/export.\n5_Projections logic.')
 function saveDB() {
     const data = {
         transactionsArr: transactionsArr

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+      <link rel="stylesheet" type="text/css" href="app.css">
+      <title>App</title>
+   </head>
+   <body>
+      <!-- nav -->
+
+    <div class="navbar">
+        <a href="#" class="nav-button active" type="button" class="btn btn-dark" onclick="logVars()">
+            <img src="res/a.png" alt="Home">
+        </a>
+        <a href="#" class="nav-button" id="transactionHistoryVisibilitybtn" type="button" class="btn btn-dark" onclick="transactionHistoryVisibility()">
+            <img src="res/b.png" alt="Search">
+        </a>
+        <a href="#" class="nav-button special" id="addTransactionFormBtn" type="button" class="btn btn-success" onclick="newTransactionFormDisplay()">
+            <img src="res/c.png" alt="Add">
+        </a>
+        <a href="#" class="nav-button"  id="varsVisibilitybtn" type="button" class="btn btn-dark" onclick="varsVisibility()">
+            <img src="res/d.png" alt="Notifications">
+        </a>
+        <a href="#" class="nav-button"  type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+            <img src="res/e.png" alt="Profile">
+        </a>
+    </div>
+<!-- nav -->
+    <div class="container">
+      <!-- add transaction table -->
+      <table id="addTransactionTable" class="table table-striped-columns">
+         <thead>
+            <tr>
+               <th scope="col">Add Transaction</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr scope="row">
+               <td class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input id="amountInputBox" type="number" class="form-control" aria-label="Amount">
+               </td>
+            </tr scope="row">
+            <tr scope="row">
+               <td class="input-group input-group-sm">
+                     <input type="date" class="form-control" id="transaction-date" placeholder="Date" aria-label="Date" required>
+               </td>
+            </tr>
+            <tr scope="row">
+               <td class="input-group input-group-sm">
+                 <select class="form-select" id="inputGroupSelect01">
+                   <option value="gasto" selected>Gasto</option>
+                   <option value="gastoCo">GastoCo</option>
+                   <option value="ingreso">Ingreso</option>
+                 </select>
+               </td>
+            </tr>
+           <!-- <tr scope="row">
+               <td class="input-group input-group-sm">
+                  <label for="range4" class="form-label">Rate!</label>
+                  <input type="range" class="form-range" min="0" max="5" value="1" step="1" id="range4">
+                  <output for="range4" id="rangeValue" aria-hidden="true"></output>
+               </td>
+            </tr> -->
+            <tr scope="row">
+               <td class="input-group input-group-sm">
+                 <span class="input-group-text" id="inputGroup-sizing-sm">Notes</span>
+                 <input id="notesInputBox" type="text" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
+               </td>
+            </tr>
+            <tr scope="row">
+               <td>
+                  <button id="saveTransaction" class="btn btn-success" onclick="saveTransaction()">Save!</button>
+               </td>
+            </tr>
+         </tbody>
+      </table>
+      <!-- add transaction table -->
+      <!-- vars -->
+      <table id="varsTable" class="table table-dark table-striped-columns">
+         <thead>
+            <tr>
+               <th scope="col">#</th>
+               <th scope="col">Variable List</th>
+               <th scope="col">Value</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <th scope="row">1</th>
+               <td>currentBalance</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">2</th>
+               <td>spendToDateThisMonth</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">3</th>
+               <td>numberOfDaysPassed</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">4</th>
+               <td>spentPerDay</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">5</th>
+               <td>monthlyIncome</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">6</th>
+               <td>monthlySpentProjection</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">7</th>
+               <td>netMonthlyProjection</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">8</th>
+               <td>spendingToDateX</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">9</th>
+               <td>paychecksToDateX</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">10</th>
+               <td>projectedIncomeToDateX</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">11</th>
+               <td>predictedCashBalanceToDateX</td>
+               <td>0</td>
+            </tr>
+         </tbody>
+      </table>
+      <!-- vars -->
+      <!-- transaction history -->
+      <table id="transactionHistoryVisibilityTable" class="table table-dark table-striped-columns">
+         <thead>
+            <tr>
+               <th scope="col">#</th>
+               <th scope="col">Transactions</th>
+               <th scope="col">Value</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <th scope="row">1</th>
+               <td>currentBalance</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">2</th>
+               <td>spendToDateThisMonth</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">3</th>
+               <td>numberOfDaysPassed</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">4</th>
+               <td>spentPerDay</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">5</th>
+               <td>monthlyIncome</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">6</th>
+               <td>monthlySpentProjection</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">7</th>
+               <td>netMonthlyProjection</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">8</th>
+               <td>spendingToDateX</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">9</th>
+               <td>paychecksToDateX</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">10</th>
+               <td>projectedIncomeToDateX</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">11</th>
+               <td>predictedCashBalanceToDateX</td>
+               <td>0</td>
+            </tr>
+         </tbody>
+      </table>
+      <!-- transaction history -->
+      </div>
+ <!--    <div id="butonera">
+         <button type="button" class="btn btn-dark" onclick="logVars()">Print Vars</button>
+         <button id="transactionHistoryVisibilitybtn" type="button" class="btn btn-dark" onclick="transactionHistoryVisibility()">History</button>
+         <button id="addTransactionFormBtn" type="button" class="btn btn-success" onclick="newTransactionFormDisplay()">+</button>
+         <button id="varsVisibilitybtn" type="button" class="btn btn-dark" onclick="varsVisibility()">Vars</button>
+         <button type="button" class="btn btn-outline-light">Danger</button>
+         <button type="button" class="btn btn-outline-light">Warning</button>
+         <button type="button" class="btn btn-outline-light">Info</button>
+         <button type="button" class="btn btn-outline-light">Light</button>          <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Settings</button>
+      </div>-->
+
+      <!-- Modal 1-->
+<div class="modal fade " id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-lg-down">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="staticBackdropLabel">Settings</h1>
+        <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
+      </div>
+      <div class="modal-body">
+         <table>
+<thead>
+            <tr>
+               <th scope="col">#</th>
+               <th scope="col">Transactions</th>
+               <th scope="col">Value</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <th scope="row">1</th>
+               <td>currentBalance</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">2</th>
+               <td>spendToDateThisMonth</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">3</th>
+               <td>numberOfDaysPassed</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">4</th>
+               <td>spentPerDay</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">5</th>
+               <td>monthlyIncome</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">6</th>
+               <td>monthlySpentProjection</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">7</th>
+               <td>netMonthlyProjection</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">8</th>
+               <td>spendingToDateX</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">9</th>
+               <td>paychecksToDateX</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">10</th>
+               <td>projectedIncomeToDateX</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">11</th>
+               <td>predictedCashBalanceToDateX</td>
+               <td>0</td>
+            </tr>
+         </tbody>
+         </table>
+                  <table>
+<thead>
+            <tr>
+               <th scope="col">#</th>
+               <th scope="col">Transactions</th>
+               <th scope="col">Value</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <th scope="row">1</th>
+               <td>currentBalance</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">2</th>
+               <td>spendToDateThisMonth</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">3</th>
+               <td>numberOfDaysPassed</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">4</th>
+               <td>spentPerDay</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">5</th>
+               <td>monthlyIncome</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">6</th>
+               <td>monthlySpentProjection</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">7</th>
+               <td>netMonthlyProjection</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">8</th>
+               <td>spendingToDateX</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">9</th>
+               <td>paychecksToDateX</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">10</th>
+               <td>projectedIncomeToDateX</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">11</th>
+               <td>predictedCashBalanceToDateX</td>
+               <td>0</td>
+            </tr>
+         </tbody>
+         </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Guardar y salir</button>
+        <button type="button" class="btn btn-primary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal 1 -->
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+      <script src="app.js"></script>
+   </body>
+</html>
+      <!-- base table
+      <table id="varsTable" class="table table-dark table-striped-columns">
+         <thead>
+            <tr>
+               <th scope="col">#</th>
+               <th scope="col">Firste</th>
+               <th scope="col">Last</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <th scope="row">1</th>
+               <td>currentBalance</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">2</th>
+               <td>spendToDateThisMonth</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">3</th>
+               <td>numberOfDaysPassed</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">4</th>
+               <td>spentPerDay</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">5</th>
+               <td>monthlyIncome</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">6</th>
+               <td>monthlySpentProjection</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">7</th>
+               <td>netMonthlyProjection</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">8</th>
+               <td>spendingToDateX</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">9</th>
+               <td>paychecksToDateX</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">10</th>
+               <td>projectedIncomeToDateX</td>
+               <td>0</td>
+            </tr>
+            <tr>
+               <th scope="row">11</th>
+               <td>predictedCashBalanceToDateX</td>
+               <td>0</td>
+            </tr>
+         </tbody>
+      </table>
+      -->

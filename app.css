@@ -9,6 +9,18 @@ body {
 	height: 100vh;
 }
 
+html, body {
+    /* Sets the height to 100% of the viewport height */
+    height: 100%; 
+    /* Removes default margins that cause unwanted scrollbars */
+    margin: 0; 
+    /* Ensures padding/borders are calculated inside the specified height */
+    box-sizing: border-box; 
+    /* Ensures no vertical scrolling occurs outside of the card element */
+    overflow: hidden; 
+}
+
+
 img {
 	max-width: 100%;
 	height: auto;
@@ -42,11 +54,15 @@ img {
 /* Base styles (mobile first) */
 .container {
 	display:  flex;
-  width: 100%;
+    width: 95%;
 	flex-direction: column;
 	align-items: center;
 	justify-content: top;
 	height: 100%;
+    margin-top: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 35px;
 }
 
 /* Styles for screens wider than 600px */
@@ -111,7 +127,7 @@ img {
             align-items: center;
             justify-content: center;
             position: relative;
-            bottom: 20px;
+            bottom: 10px;
             box-shadow: 0 5px 15px rgba(0, 122, 255, 0.4);
             transition: background-color 0.3s ease, transform 0.3s ease;
             flex-shrink: 0; /* Prevent shrinking */

@@ -28,7 +28,7 @@
         </a>
     </div>
 <!-- nav -->
-    <div class="container">
+    <div class="container card">
       <!-- add transaction table -->
       <table id="addTransactionTable" class="table table-striped-columns">
          <thead>
@@ -57,13 +57,6 @@
                  </select>
                </td>
             </tr>
-           <!-- <tr scope="row">
-               <td class="input-group input-group-sm">
-                  <label for="range4" class="form-label">Rate!</label>
-                  <input type="range" class="form-range" min="0" max="5" value="1" step="1" id="range4">
-                  <output for="range4" id="rangeValue" aria-hidden="true"></output>
-               </td>
-            </tr> -->
             <tr scope="row">
                <td class="input-group input-group-sm">
                  <span class="input-group-text" id="inputGroup-sizing-sm">Notes</span>
@@ -79,7 +72,7 @@
       </table>
       <!-- add transaction table -->
       <!-- vars -->
-      <table id="varsTable" class="table table-dark table-striped-columns">
+      <table id="varsTable" class="table table-striped-columns">
          <thead>
             <tr>
                <th scope="col">#</th>
@@ -147,7 +140,7 @@
       </table>
       <!-- vars -->
       <!-- transaction history -->
-      <table id="transactionHistoryVisibilityTable" class="table table-dark table-striped-columns">
+      <table id="transactionHistoryVisibilityTable" class="table table-striped-columns">
          <thead>
             <tr>
                <th scope="col">#</th>
@@ -162,17 +155,6 @@
       </table>
       <!-- transaction history -->
       </div>
- <!--    <div id="butonera">
-         <button type="button" class="btn btn-dark" onclick="logVars()">Print Vars</button>
-         <button id="transactionHistoryVisibilitybtn" type="button" class="btn btn-dark" onclick="transactionHistoryVisibility()">History</button>
-         <button id="addTransactionFormBtn" type="button" class="btn btn-success" onclick="newTransactionFormDisplay()">+</button>
-         <button id="varsVisibilitybtn" type="button" class="btn btn-dark" onclick="varsVisibility()">Vars</button>
-         <button type="button" class="btn btn-outline-light">Danger</button>
-         <button type="button" class="btn btn-outline-light">Warning</button>
-         <button type="button" class="btn btn-outline-light">Info</button>
-         <button type="button" class="btn btn-outline-light">Light</button>          <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Settings</button>
-      </div>-->
-
       <!-- Modal 1-->
 <div class="modal fade " id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-lg-down">
@@ -203,71 +185,3 @@
       <script src="app.js"></script>
    </body>
 </html>
-      <!-- base table
-      <table id="varsTable" class="table table-dark table-striped-columns">
-         <thead>
-            <tr>
-               <th scope="col">#</th>
-               <th scope="col">Firste</th>
-               <th scope="col">Last</th>
-            </tr>
-         </thead>
-         <tbody>
-            <tr>
-               <th scope="row">1</th>
-               <td>currentBalance</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">2</th>
-               <td>spendToDateThisMonth</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">3</th>
-               <td>numberOfDaysPassed</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">4</th>
-               <td>spentPerDay</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">5</th>
-               <td>monthlyIncome</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">6</th>
-               <td>monthlySpentProjection</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">7</th>
-               <td>netMonthlyProjection</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">8</th>
-               <td>spendingToDateX</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">9</th>
-               <td>paychecksToDateX</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">10</th>
-               <td>projectedIncomeToDateX</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">11</th>
-               <td>predictedCashBalanceToDateX</td>
-               <td>0</td>
-            </tr>
-         </tbody>
-      </table>
-      -->

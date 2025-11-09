@@ -40,7 +40,7 @@
             <tr scope="row">
                <td class="input-group input-group-sm">
                     <span class="input-group-text">$</span>
-                    <input id="amountInputBox" type="number" class="form-control" aria-label="Amount">
+                    <input id="amountInputBox" type="number" class="form-control" aria-label="Amount" required>
                </td>
             </tr scope="row">
             <tr scope="row">
@@ -182,142 +182,18 @@
         <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
       </div>
       <div class="modal-body">
-         <table>
-<thead>
-            <tr>
-               <th scope="col">#</th>
-               <th scope="col">Transactions</th>
-               <th scope="col">Value</th>
-            </tr>
-         </thead>
+      <table  class="table">
          <tbody>
-            <tr>
-               <th scope="row">1</th>
-               <td>currentBalance</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">2</th>
-               <td>spendToDateThisMonth</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">3</th>
-               <td>numberOfDaysPassed</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">4</th>
-               <td>spentPerDay</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">5</th>
-               <td>monthlyIncome</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">6</th>
-               <td>monthlySpentProjection</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">7</th>
-               <td>netMonthlyProjection</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">8</th>
-               <td>spendingToDateX</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">9</th>
-               <td>paychecksToDateX</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">10</th>
-               <td>projectedIncomeToDateX</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">11</th>
-               <td>predictedCashBalanceToDateX</td>
-               <td>0</td>
+                <tr>
+                  <th >Reset app</th>
+                  <td><button class="btn btn-danger">Clear VARS</button> </td>
             </tr>
          </tbody>
-         </table>
-                  <table>
-<thead>
-            <tr>
-               <th scope="col">#</th>
-               <th scope="col">Transactions</th>
-               <th scope="col">Value</th>
-            </tr>
-         </thead>
-         <tbody>
-            <tr>
-               <th scope="row">1</th>
-               <td>currentBalance</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">2</th>
-               <td>spendToDateThisMonth</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">3</th>
-               <td>numberOfDaysPassed</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">4</th>
-               <td>spentPerDay</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">5</th>
-               <td>monthlyIncome</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">6</th>
-               <td>monthlySpentProjection</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">7</th>
-               <td>netMonthlyProjection</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">8</th>
-               <td>spendingToDateX</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">9</th>
-               <td>paychecksToDateX</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">10</th>
-               <td>projectedIncomeToDateX</td>
-               <td>0</td>
-            </tr>
-            <tr>
-               <th scope="row">11</th>
-               <td>predictedCashBalanceToDateX</td>
-               <td>0</td>
-            </tr>
-         </tbody>
-         </table>
+      </table>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Guardar y salir</button>
-        <button type="button" class="btn btn-primary">Cancelar</button>
+        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Guardar y salir</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancelar</button>
       </div>
     </div>
   </div>

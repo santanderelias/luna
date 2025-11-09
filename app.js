@@ -14,7 +14,20 @@ let transactionsArr = [];
 let transactionHistoryTableState = 0;
 let varsTableState = 0;
 let addTransactionTableState = 0;
-console.log('Todo \n1_.\n2_Fill transaction table with transactions.\n3_Develop settings section.\n4_CSV import/export.\n5_Projections logic.')
+const now = new Date();
+// --- Ensures the date is based on the local Buenos Aires time ---
+const year = now.getFullYear();
+// .getMonth() is 0-indexed, so add 1 (January=0, December=11)
+const month = String(now.getMonth() + 1).padStart(2, '0');
+const day = String(now.getDate()).padStart(2, '0');
+const localFormattedDate = `${year}-${month}-${day}`;
+// Output will be: "2025-11-09" (Guaranteed to be the local day in Buenos Aires)
+console.log(`setting date to ${localFormattedDate}`);
+// Output will be today's date in YYYY-MM-DD format (e.g., "2025-11-09") 
+//set default date
+transactionDate.value = localFormattedDate;
+// based on UTC time.
+console.log('Todo \n1_Prevent empty values or prevent the process on transaction.\n2_Fill tables with transactions.\n3_Develop settings section.\n4_CSV import/export.\n5_Projections logic.')
 function saveDB() {
     const data = {
         transactionsArr: transactionsArr
@@ -83,22 +96,28 @@ function newTransactionFormDisplay() {
     if (addTransactionTableState == 0){
         addTransactionTable.style.display = 'table';
         transactionHistoryVisibilityTable.style.display = 'none';
+        varsVisibilityTable.style.display = 'none';
         addTransactionTableState = 1;
         transactionHistoryTableState = 0;
         varsTableState = 0;
         console.log('ran 1')
+        amountInputBox.focus();
     }
     else {
-        addTransactionTable.style.display = 'none';
-        transactionHistoryVisibilityTable.style.display = 'none';
-        varsVisibilityTable.style.display = 'none';
-        addTransactionTableState = 0;
+        amountInputBox.focus();
         console.log('ran 2')
     }
 }
 function saveTransaction() {
     if(inputGroupSizingSm.value == "" || undefined){
         inputGroupSizingSm.value = 'Sin Notas'
+    }
+    if(transactionDate.value == "" || undefined){
+        transactionDate.value = localFormattedDate;
+    }
+       if(amountInputBox.value == "" || undefined){
+        window.alert('Invalid amount');
+        invalidAmount;
     }
   const transaction = {
     amount: amountInputBox.value,
@@ -111,9 +130,9 @@ function saveTransaction() {
   console.log(transactionsArr);
   saveDB()
     amountInputBox.value = ''
-    transactionDate.value = ''
+    transactionDate.value = localFormattedDate;
     inputGroupSizingSm.value = ''
-  renderTransactions();
+    renderTransactions();
 }
 //import export CSV
 function exportToCsv() {
@@ -158,8 +177,9 @@ function renderTransactions() {
 }
 window.onload = () => {
     setTimeout(() => {
-    document.getElementById('amountInputBox').focus();console.log('done')
+    document.getElementById('amountInputBox').focus();
+    console.log('done')
     }, 1000);
     renderTransactions();
+    loadDB();
 };
-loadDB();

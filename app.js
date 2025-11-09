@@ -67,13 +67,13 @@ function transactionHistoryVisibility() {
         renderTransactions();
         console.log('ran 1')
     }
-    else {
+/*    else {
         transactionHistoryVisibilityTable.style.display = 'none';
         varsVisibilityTable.style.display = 'none';
         transactionHistoryTableState = 0;
         addTransactionTableState = 0;
         console.log('ran 2')
-    }
+    } */
 }
 function varsVisibility() {
     if (varsTableState == 0){
@@ -85,12 +85,12 @@ function varsVisibility() {
         addTransactionTableState = 0;
         console.log('ran 1')
     }
-    else {
+/*   else {
         transactionHistoryVisibilityTable.style.display = 'none';
         varsVisibilityTable.style.display = 'none';
         varsTableState = 0;
         console.log('ran 2')
-    }
+    }*/
 }
 function newTransactionFormDisplay() {
     if (addTransactionTableState == 0){

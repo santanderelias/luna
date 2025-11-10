@@ -89,27 +89,25 @@ function logVars() {
     console.log(transactionsArr)
     console.log("-----------------------------------");
 }
-function transactionHistoryVisibility() {
-    transactionHistoryContainer.style.display = 'block';
-    addTransactionTable.style.display = 'none';
-    varsVisibilityTable.style.display = 'none';
+function showSection(sectionId) {
+    // Hide all sections
     statsVisibilityTable.style.display = 'none';
-    renderTransactions();
-}
-
-function varsVisibility() {
-    varsVisibilityTable.style.display = 'block';
+    varsVisibilityTable.style.display = 'none';
     transactionHistoryContainer.style.display = 'none';
     addTransactionTable.style.display = 'none';
-    statsVisibilityTable.style.display = 'none';
-}
 
-function statsVisibility() {
-    statsVisibilityTable.style.display = 'block';
-    addTransactionTable.style.display = 'none';
-    transactionHistoryContainer.style.display = 'none';
-    varsVisibilityTable.style.display = 'none';
-    renderStatisticsCharts();
+    // Show the requested section
+    const section = document.getElementById(sectionId);
+    if (section) {
+        section.style.display = 'block';
+    }
+
+    // Call render functions if necessary
+    if (sectionId === 'transactionHistoryContainer') {
+        renderTransactions();
+    } else if (sectionId === 'statisticsTable') {
+        renderStatisticsCharts();
+    }
 }
 
 function renderStatisticsCharts() {
@@ -241,10 +239,7 @@ function renderStatisticsCharts() {
     });
 }
 function newTransactionFormDisplay() {
-    addTransactionTable.style.display = 'block';
-    transactionHistoryContainer.style.display = 'none';
-    varsVisibilityTable.style.display = 'none';
-    statsVisibilityTable.style.display = 'none';
+    showSection('addTransactionTable');
     amountInputBox.focus();
 }
 function saveTransaction() {
@@ -406,9 +401,10 @@ window.onload = () => {
     document.getElementById('amountInputBox').focus();
     console.log('done')
     }, 1000);
-    renderTransactions();
     loadDB();
+    renderTransactions();
     renderStatisticsCharts();
+    showSection('addTransactionTable');
 
     document.getElementById('projection-date-picker').addEventListener('change', calculateVars);
 };

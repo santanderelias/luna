@@ -28,16 +28,16 @@
    <body>
     <!-- nav -->
     <div class="navbar">
-        <a href="#" class="nav-button active" type="button" onclick="statsVisibility()">
+        <a href="#" class="nav-button active" type="button" onclick="showSection('statisticsTable')">
             <img src="res/a.png" alt="Home">
         </a>
-        <a href="#" class="nav-button" id="transactionHistoryVisibilitybtn" type="button" onclick="transactionHistoryVisibility()">
+        <a href="#" class="nav-button" id="transactionHistoryVisibilitybtn" type="button" onclick="showSection('transactionHistoryContainer')">
             <img src="res/b.png" alt="History">
         </a>
-        <a href="#" class="nav-button special" id="addTransactionFormBtn" type="button" onclick="newTransactionFormDisplay()">
+        <a href="#" class="nav-button special" id="addTransactionFormBtn" type="button" onclick="showSection('addTransactionTable')">
             <img src="res/c.png" alt="Add">
         </a>
-        <a href="#" class="nav-button" id="varsVisibilitybtn" type="button" onclick="varsVisibility()">
+        <a href="#" class="nav-button" id="varsVisibilitybtn" type="button" onclick="showSection('varsTable')">
             <img src="res/d.png" alt="Vars">
         </a>
         <a href="#" class="nav-button" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
@@ -57,7 +57,7 @@
             </div>
 
             <!-- add transaction form -->
-            <div id="addTransactionTable" style="display: none;">
+            <div id="addTransactionTable" style="display: block;">
                 <h3>Add Transaction</h3>
                 <div class="input-group mb-3">
                     <span class="input-group-text">$</span>
@@ -114,7 +114,7 @@
             </div>
 
             <!-- transaction history -->
-            <div id="transactionHistoryContainer" style="display: block;">
+            <div id="transactionHistoryContainer">
                 <h3>Transaction History</h3>
                 <table id="transactionHistoryVisibilityTable" class="table table-hover">
                     <thead>

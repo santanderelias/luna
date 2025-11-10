@@ -113,68 +113,61 @@
       <!-- add transaction table -->
       <!-- vars -->
       <div id="varsTable" style="display: none;">
-         <div class="mb-3">
-             <label for="income-date-picker" class="form-label">Income Date</label>
-             <input type="date" class="form-control" id="income-date-picker">
-         </div>
-         <div class="mb-3">
-             <label for="projection-date-picker" class="form-label">Projection Target Date</label>
-             <input type="date" class="form-control" id="projection-date-picker">
-         </div>
-         <table class="table table-striped-columns">
-             <thead>
-                 <tr>
-                     <th scope="col">Variable</th>
-                     <th scope="col">Value</th>
-                 </tr>
-             </thead>
-             <tbody>
-                 <tr>
-                     <td>Current Balance</td>
-                     <td id="currentBalance">0</td>
-                 </tr>
-                 <tr>
-                     <td>Spend to Date This Month</td>
-                     <td id="spendToDateThisMonth">0</td>
-                 </tr>
-                 <tr>
-                     <td>Number of Days Passed</td>
-                     <td id="numberOfDaysPassed">0</td>
-                 </tr>
-                 <tr>
-                     <td>Spent Per Day</td>
-                     <td id="spentPerDay">0</td>
-                 </tr>
-                 <tr>
-                     <td>Monthly Income</td>
-                     <td id="monthlyIncome">0</td>
-                 </tr>
-                 <tr>
-                     <td>Monthly Spent Projection</td>
-                     <td id="monthlySpentProjection">0</td>
-                 </tr>
-                 <tr>
-                     <td>Net Monthly Projection</td>
-                     <td id="netMonthlyProjection">0</td>
-                 </tr>
-                 <tr>
-                     <td>Spending to Date X</td>
-                     <td id="spendingToDateX">0</td>
-                 </tr>
-                 <tr>
-                     <td>Paychecks to Date X</td>
-                     <td id="paychecksToDateX">0</td>
-                 </tr>
-                 <tr>
-                     <td>Projected Income to Date X</td>
-                     <td id="projectedIncomeToDateX">0</td>
-                 </tr>
-                 <tr>
-                     <td>Predicted Cash Balance to Date X</td>
-                     <td id="predictedCashBalanceToDateX">0</td>
-                 </tr>
-             </tbody>
-         </table>
+          <h3>Current Data</h3>
+          <table class="table table-striped-columns">
+              <tbody>
+                  <tr>
+                      <td>Current Balance</td>
+                      <td id="currentBalance">0</td>
+                  </tr>
+                  <tr>
+                      <td>Spend to Date This Month</td>
+                      <td id="spendToDateThisMonth">0</td>
+                  </tr>
+                  <tr>
+                      <td>Spent Per Day</td>
+                      <td id="spentPerDay">0</td>
+                  </tr>
+              </tbody>
+          </table>
+          <h3>Projections</h3>
+          <table class="table table-striped-columns">
+              <tbody>
+                  <tr>
+                      <td>Monthly Spent Projection</td>
+                      <td id="monthlySpentProjection">0</td>
+                  </tr>
+                  <tr>
+                      <td>Net Monthly Projection</td>
+                      <td id="netMonthlyProjection">0</td>
+                  </tr>
+              </tbody>
+          </table>
+          <h3>Set Projections</h3>
+          <div class="mb-3">
+              <label for="projection-date-picker" class="form-label">Projection Target Date</label>
+              <input type="date" class="form-control" id="projection-date-picker">
+          </div>
+          <table class="table table-striped-columns">
+              <tbody>
+                  <tr>
+                      <td>Spending to Date X</td>
+                      <td id="spendingToDateX">0</td>
+                  </tr>
+                  <tr>
+                      <td>Paychecks to Date X</td>
+                      <td id="paychecksToDateX">0</td>
+                  </tr>
+                  <tr>
+                      <td>Projected Income to Date X</td>
+                      <td id="projectedIncomeToDateX">0</td>
+                  </tr>
+                  <tr>
+                      <td>Predicted Cash Balance to Date X</td>
+                      <td id="predictedCashBalanceToDateX">0</td>
+                  </tr>
+              </tbody>
+          </table>
       </div>
       <!-- vars -->
       <!-- transaction history -->
@@ -200,20 +193,31 @@
     <div class="modal-content">
       <div class="modal-header">
         <h1 class="modal-title fs-5" id="staticBackdropLabel">Settings</h1>
-        <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
       </div>
       <div class="modal-body">
-      <table  class="table">
-         <tbody>
-                <tr>
-                  <th >Reset app</th>
-                  <td><button class="btn btn-danger">Clear VARS</button> </td>
-            </tr>
-         </tbody>
-      </table>
+          <div class="mb-3">
+              <label for="current-balance-input" class="form-label">Current Balance</label>
+              <input type="number" class="form-control" id="current-balance-input" value="0">
+          </div>
+          <div class="mb-3">
+              <label for="paycheck1-input" class="form-label">Paycheck on the 15th</label>
+              <input type="number" class="form-control" id="paycheck1-input" value="0">
+          </div>
+          <div class="mb-3">
+              <label for="paycheck2-input" class="form-label">Paycheck on End of Month</label>
+              <input type="number" class="form-control" id="paycheck2-input" value="0">
+          </div>
+          <table  class="table">
+              <tbody>
+                  <tr>
+                      <th >Reset app</th>
+                      <td><button class="btn btn-danger" onclick="clearDB()">Clear VARS</button> </td>
+                  </tr>
+              </tbody>
+          </table>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Guardar y salir</button>
+        <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="saveSettings()">Guardar y salir</button>
         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancelar</button>
       </div>
     </div>

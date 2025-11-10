@@ -11,6 +11,11 @@ const inputGroupSelect01 = document.getElementById('inputGroupSelect01');
 //const rangeValue = document.getElementById('rangeValue');
 const inputGroupSizingSm = document.getElementById('notesInputBox');
 let transactionsArr = [];
+let settings = {
+    currentBalance: 0,
+    paycheck1: 0,
+    paycheck2: 0
+};
 //states
 let transactionHistoryTableState = 0;
 let varsTableState = 0;
@@ -32,27 +37,47 @@ transactionDate.value = localFormattedDate;
 console.log('Todo \n1_Prevent empty values or prevent the process on transaction.\n2_Fill tables with transactions.\n3_Develop settings section.\n4_CSV import/export.\n5_Projections logic.')
 function saveDB() {
     const data = {
-        transactionsArr: transactionsArr
+        transactionsArr: transactionsArr,
+        settings: settings
     };
     localStorage.setItem('DB', JSON.stringify(data));
     console.log("DB saved to localStorage.");
 }
+
 function loadDB() {
     const storedData = localStorage.getItem('DB');
     if (storedData) {
         const data = JSON.parse(storedData);
         transactionsArr = data.transactionsArr || [];
+        settings = data.settings || { currentBalance: 0, paycheck1: 0, paycheck2: 0 };
+        document.getElementById('current-balance-input').value = settings.currentBalance;
+        document.getElementById('paycheck1-input').value = settings.paycheck1;
+        document.getElementById('paycheck2-input').value = settings.paycheck2;
         console.log("DB data loaded from localStorage.");
         calculateVars(); // Call calculateVars after loading data
     } else {
         console.log("DB  not found in localStorage. Variables remain at default values (0).");
     }
 }
+
 function clearDB() {
     localStorage.removeItem('DB');
-    transactionsArr = []
+    transactionsArr = [];
+    settings = { currentBalance: 0, paycheck1: 0, paycheck2: 0 };
+    document.getElementById('current-balance-input').value = 0;
+    document.getElementById('paycheck1-input').value = 0;
+    document.getElementById('paycheck2-input').value = 0;
     console.log("All in-memory variables removed.");
     console.log("Successfully removed 'DB' from localStorage.");
+    calculateVars();
+}
+
+function saveSettings() {
+    settings.currentBalance = parseFloat(document.getElementById('current-balance-input').value);
+    settings.paycheck1 = parseFloat(document.getElementById('paycheck1-input').value);
+    settings.paycheck2 = parseFloat(document.getElementById('paycheck2-input').value);
+    saveDB();
+    calculateVars();
 }
 function logVars() {
     console.log("--- Current Financial Variables ---");
@@ -161,6 +186,7 @@ function saveTransaction() {
     transactionDate.value = localFormattedDate;
     inputGroupSizingSm.value = ''
     renderTransactions();
+    calculateVars();
 }
 //import export CSV
 function exportToCsv() {
@@ -204,11 +230,26 @@ function renderTransactions() {
     cell5.innerHTML = transaction.notes;
 
     const editButton = document.createElement('button');
-    editButton.textContent = 'Edit';
+    editButton.textContent = '✏️';
     editButton.className = 'btn btn-warning btn-sm';
     editButton.onclick = () => editTransaction(index);
     cell6.appendChild(editButton);
+
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = '🚫';
+    deleteButton.className = 'btn btn-danger btn-sm';
+    deleteButton.onclick = () => deleteTransaction(index);
+    cell6.appendChild(deleteButton);
   });
+}
+
+function deleteTransaction(index) {
+    if (confirm('Are you sure you want to delete this transaction?')) {
+        transactionsArr.splice(index, 1);
+        saveDB();
+        renderTransactions();
+        calculateVars();
+    }
 }
 
 function editTransaction(index) {
@@ -269,6 +310,7 @@ function saveEditedTransaction(index) {
 
     saveDB();
     renderTransactions();
+    calculateVars();
 }
 window.onload = () => {
     setTimeout(() => {
@@ -278,72 +320,85 @@ window.onload = () => {
     renderTransactions();
     loadDB();
 
-    document.getElementById('income-date-picker').addEventListener('change', calculateVars);
     document.getElementById('projection-date-picker').addEventListener('change', calculateVars);
 };
 
 function calculateVars() {
-    const incomeDatePicker = document.getElementById('income-date-picker');
     const projectionDatePicker = document.getElementById('projection-date-picker');
+    const projectionDate = projectionDatePicker.valueAsDate ? new Date(projectionDatePicker.valueAsDate.getTime() + projectionDatePicker.valueAsDate.getTimezoneOffset() * 60000) : null;
 
-    if (!incomeDatePicker.value || !projectionDatePicker.value) {
-        console.log("Date pickers not set, skipping calculations.");
-        return;
-    }
-
-    const incomeDate = new Date(incomeDatePicker.value);
-    const projectionDate = new Date(projectionDatePicker.value);
     const today = new Date();
-    const incomeMonth = incomeDate.getMonth();
-    const incomeYear = incomeDate.getFullYear();
-    const daysInMonth = new Date(incomeYear, incomeMonth + 1, 0).getDate();
+    today.setHours(0, 0, 0, 0);
 
-    let currentBalance = 0;
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const numberOfDaysPassed = today.getDate();
+
     let spendToDateThisMonth = 0;
-    let monthlyIncome = 0;
-    let spendingToDateX = 0;
-    let paychecksToDateX = 0;
-
     transactionsArr.forEach(t => {
         const transactionDate = new Date(t.date);
-        if (t.type === 'ingreso') {
-            currentBalance += parseFloat(t.amount);
-            if (transactionDate.getMonth() === incomeMonth && transactionDate.getFullYear() === incomeYear) {
-                monthlyIncome += parseFloat(t.amount);
-            }
-            if (transactionDate <= projectionDate) {
-                paychecksToDateX += parseFloat(t.amount);
-            }
-        } else {
-            currentBalance -= parseFloat(t.amount);
-            if (transactionDate.getMonth() === incomeMonth && transactionDate.getFullYear() === incomeYear) {
-                spendToDateThisMonth += parseFloat(t.amount);
-            }
-            if (transactionDate <= projectionDate) {
-                spendingToDateX += parseFloat(t.amount);
-            }
+        if ((t.type === 'gasto' || t.type === 'gastoCo') && transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear) {
+            spendToDateThisMonth += parseFloat(t.amount);
         }
     });
 
-    const numberOfDaysPassed = today.getDate();
-    const spentPerDay = spendToDateThisMonth / numberOfDaysPassed;
+    const spentPerDay = numberOfDaysPassed > 0 ? spendToDateThisMonth / numberOfDaysPassed : 0;
+    const monthlyIncome = settings.paycheck1 + settings.paycheck2;
     const monthlySpentProjection = spentPerDay * daysInMonth;
     const netMonthlyProjection = monthlyIncome - monthlySpentProjection;
 
-    const timeDiff = projectionDate.getTime() - today.getTime();
-    const daysToProjection = Math.ceil(timeDiff / (1000 * 3600 * 24));
-    const projectedIncomeToDateX = monthlyIncome;
-    const predictedCashBalanceToDateX = currentBalance + (monthlyIncome / daysInMonth * daysToProjection) - (spentPerDay * daysToProjection);
+    let currentBalance = settings.currentBalance;
+    transactionsArr.forEach(t => {
+        const amount = parseFloat(t.amount);
+        if (t.type === 'ingreso') {
+            currentBalance += amount;
+        } else if (t.type === 'gasto' || t.type === 'gastoCo') {
+            currentBalance -= amount;
+        }
+    });
 
+    // Update "Current Data" and "Projections" tables
     document.getElementById('currentBalance').textContent = currentBalance.toFixed(2);
-    document.getElementById('spendToDateThisMonth').textContent = spendToDateThisMonth.toFixed(2);
-    document.getElementById('numberOfDaysPassed').textContent = numberOfDaysPassed;
-    document.getElementById('spentPerDay').textContent = spentPerDay.toFixed(2);
-    document.getElementById('monthlyIncome').textContent = monthlyIncome.toFixed(2);
-    document.getElementById('monthlySpentProjection').textContent = monthlySpentProjection.toFixed(2);
+    document.getElementById('spendToDateThisMonth').textContent = (-spendToDateThisMonth).toFixed(2);
+    document.getElementById('spentPerDay').textContent = (-spentPerDay).toFixed(2);
+    document.getElementById('monthlySpentProjection').textContent = (-monthlySpentProjection).toFixed(2);
     document.getElementById('netMonthlyProjection').textContent = netMonthlyProjection.toFixed(2);
-    document.getElementById('spendingToDateX').textContent = spendingToDateX.toFixed(2);
-    document.getElementById('paychecksToDateX').textContent = paychecksToDateX.toFixed(2);
-    document.getElementById('projectedIncomeToDateX').textContent = projectedIncomeToDateX.toFixed(2);
-    document.getElementById('predictedCashBalanceToDateX').textContent = predictedCashBalanceToDateX.toFixed(2);
+
+    // Handle "Set Projections"
+    if (projectionDate && projectionDate >= today) {
+        const daysToProjection = Math.ceil((projectionDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+
+        // Forward-projected spending
+        const spendingToDateX = spentPerDay * daysToProjection;
+
+        // Correctly calculate paychecks between today and projection date
+        let paychecksToDateX = 0;
+        let tempDate = new Date(today);
+        while(tempDate <= projectionDate) {
+            const dayOfMonth = tempDate.getDate();
+            const lastDayOfMonth = new Date(tempDate.getFullYear(), tempDate.getMonth() + 1, 0).getDate();
+
+            if (dayOfMonth === 15) {
+                paychecksToDateX += settings.paycheck1;
+            }
+            if (dayOfMonth === lastDayOfMonth) {
+                paychecksToDateX += settings.paycheck2;
+            }
+            tempDate.setDate(tempDate.getDate() + 1);
+        }
+
+        const predictedCashBalanceToDateX = currentBalance - spendingToDateX + paychecksToDateX;
+
+        document.getElementById('spendingToDateX').textContent = (-spendingToDateX).toFixed(2);
+        document.getElementById('paychecksToDateX').textContent = paychecksToDateX.toFixed(2);
+        document.getElementById('projectedIncomeToDateX').textContent = paychecksToDateX.toFixed(2);
+        document.getElementById('predictedCashBalanceToDateX').textContent = predictedCashBalanceToDateX.toFixed(2);
+    } else {
+        // Clear projection fields if date is not valid
+        document.getElementById('spendingToDateX').textContent = "0";
+        document.getElementById('paychecksToDateX').textContent = "0";
+        document.getElementById('projectedIncomeToDateX').textContent = "0";
+        document.getElementById('predictedCashBalanceToDateX').textContent = "0";
+    }
 }

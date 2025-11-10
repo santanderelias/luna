@@ -6,187 +6,133 @@
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
       <link rel="stylesheet" type="text/css" href="app.css">
       <title>App</title>
+      <style>
+        body {
+            background-color: #f0f2f5;
+        }
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .navbar {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+        h3 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 0.5rem;
+            margin-top: 1.5rem;
+        }
+      </style>
    </head>
    <body>
-      <!-- nav -->
-
+    <!-- nav -->
     <div class="navbar">
-        <a href="#" class="nav-button active" type="button" class="btn btn-dark" onclick="logVars(); statsVisibility()">
+        <a href="#" class="nav-button active" type="button" onclick="statsVisibility()">
             <img src="res/a.png" alt="Home">
         </a>
-        <a href="#" class="nav-button" id="transactionHistoryVisibilitybtn" type="button" class="btn btn-dark" onclick="transactionHistoryVisibility()">
-            <img src="res/b.png" alt="Search">
+        <a href="#" class="nav-button" id="transactionHistoryVisibilitybtn" type="button" onclick="transactionHistoryVisibility()">
+            <img src="res/b.png" alt="History">
         </a>
-        <a href="#" class="nav-button special" id="addTransactionFormBtn" type="button" class="btn btn-success" onclick="newTransactionFormDisplay()">
+        <a href="#" class="nav-button special" id="addTransactionFormBtn" type="button" onclick="newTransactionFormDisplay()">
             <img src="res/c.png" alt="Add">
         </a>
-        <a href="#" class="nav-button"  id="varsVisibilitybtn" type="button" class="btn btn-dark" onclick="varsVisibility()">
-            <img src="res/d.png" alt="Notifications">
+        <a href="#" class="nav-button" id="varsVisibilitybtn" type="button" onclick="varsVisibility()">
+            <img src="res/d.png" alt="Vars">
         </a>
-        <a href="#" class="nav-button"  type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-            <img src="res/e.png" alt="Profile">
+        <a href="#" class="nav-button" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+            <img src="res/e.png" alt="Settings">
         </a>
     </div>
-<!-- nav -->
-    <div class="container card">
-      <!-- statistics table -->
-      <table id="statisticsTable" class="table">
-         <thead>
-            <tr>
-               <th scope="col">Statistics</th>
-            </tr>
-         </thead>
-         <tbody>
-            <tr scope="row">
-               <td class="input-group input-group-sm">
+    <!-- nav -->
+
+    <div class="container mt-4">
+        <div class="card p-4">
+            <!-- statistics table -->
+            <div id="statisticsTable" style="display: none;">
+                <h3>Statistics</h3>
+                <canvas id="incomeExpenseChart"></canvas>
+                <canvas id="expenseBreakdownChart" class="mt-4"></canvas>
+                <canvas id="timeToTargetChart" class="mt-4"></canvas>
+            </div>
+
+            <!-- add transaction form -->
+            <div id="addTransactionTable" style="display: none;">
+                <h3>Add Transaction</h3>
+                <div class="input-group mb-3">
                     <span class="input-group-text">$</span>
-               </td>
-            </tr scope="row">
-            <tr scope="row">
-               <td class="input-group input-group-sm">
-                     <p>Paragraph</p>
-               </td>
-            </tr>
-            <tr scope="row">
-               <td class="input-group input-group-sm">
-                 <select class="form-select" id="select01">
-                   <option value="Selection1" selected>Selection1</option>
-                   <option value="Selection2">Selection2</option>
-                   <option value="Selection3">Sel3</option>
-                 </select>
-               </td>
-            </tr>
-            <tr scope="row">
-               <td class="input-group input-group-sm">
-                 <span class="input-group-text" id="inputGroup-sizing-sm">Notes</span>
-               </td>
-            </tr>
-            <tr scope="row">
-               <td>
-                  <button id="saveTransaction" class="btn btn-success" onclick="saveTransaction()">Calculate</button>
-               </td>
-            </tr>
-         </tbody>
-      </table>
-      <!-- add transaction table -->
-      <!-- add transaction table -->
-      <table id="addTransactionTable" class="table table-striped-columns">
-         <thead>
-            <tr>
-               <th scope="col">Add Transaction</th>
-            </tr>
-         </thead>
-         <tbody>
-            <tr scope="row">
-               <td class="input-group input-group-sm">
-                    <span class="input-group-text">$</span>
-                    <input id="amountInputBox" type="number" class="form-control" aria-label="Amount" required>
-               </td>
-            </tr scope="row">
-            <tr scope="row">
-               <td class="input-group input-group-sm">
-                     <input type="date" class="form-control" id="transaction-date" placeholder="Date" aria-label="Date" required>
-               </td>
-            </tr>
-            <tr scope="row">
-               <td class="input-group input-group-sm">
-                 <select class="form-select" id="inputGroupSelect01">
-                   <option value="gasto" selected>Gasto</option>
-                   <option value="gastoCo">GastoCo</option>
-                   <option value="ingreso">Ingreso</option>
-                 </select>
-               </td>
-            </tr>
-            <tr scope="row">
-               <td class="input-group input-group-sm">
-                 <span class="input-group-text" id="inputGroup-sizing-sm">Notes</span>
-                 <input id="notesInputBox" type="text" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
-               </td>
-            </tr>
-            <tr scope="row">
-               <td>
-                  <button id="saveTransaction" class="btn btn-success" onclick="saveTransaction()">Save!</button>
-               </td>
-            </tr>
-         </tbody>
-      </table>
-      <!-- add transaction table -->
-      <!-- vars -->
-      <div id="varsTable" style="display: none;">
-          <h3>Current Data</h3>
-          <table class="table table-striped-columns">
-              <tbody>
-                  <tr>
-                      <td>Current Balance</td>
-                      <td id="currentBalance">0</td>
-                  </tr>
-                  <tr>
-                      <td>Spend to Date This Month</td>
-                      <td id="spendToDateThisMonth">0</td>
-                  </tr>
-                  <tr>
-                      <td>Spent Per Day</td>
-                      <td id="spentPerDay">0</td>
-                  </tr>
-              </tbody>
-          </table>
-          <h3>Projections</h3>
-          <table class="table table-striped-columns">
-              <tbody>
-                  <tr>
-                      <td>Monthly Spent Projection</td>
-                      <td id="monthlySpentProjection">0</td>
-                  </tr>
-                  <tr>
-                      <td>Net Monthly Projection</td>
-                      <td id="netMonthlyProjection">0</td>
-                  </tr>
-              </tbody>
-          </table>
-          <h3>Set Projections</h3>
-          <div class="mb-3">
-              <label for="projection-date-picker" class="form-label">Projection Target Date</label>
-              <input type="date" class="form-control" id="projection-date-picker">
-          </div>
-          <table class="table table-striped-columns">
-              <tbody>
-                  <tr>
-                      <td>Spending to Date X</td>
-                      <td id="spendingToDateX">0</td>
-                  </tr>
-                  <tr>
-                      <td>Paychecks to Date X</td>
-                      <td id="paychecksToDateX">0</td>
-                  </tr>
-                  <tr>
-                      <td>Projected Income to Date X</td>
-                      <td id="projectedIncomeToDateX">0</td>
-                  </tr>
-                  <tr>
-                      <td>Predicted Cash Balance to Date X</td>
-                      <td id="predictedCashBalanceToDateX">0</td>
-                  </tr>
-              </tbody>
-          </table>
-      </div>
-      <!-- vars -->
-      <!-- transaction history -->
-      <table id="transactionHistoryVisibilityTable" class="table table-striped-columns">
-         <thead>
-            <tr>
-               <th scope="col">#</th>
-               <th scope="col">Fecha</th>
-               <th scope="col">Tipo</th>
-               <th scope="col">Monto</th>
-               <th scope="col">Notas</th>
-               <th scope="col">Actions</th>
-            </tr>
-         </thead>
-         <tbody>
-         </tbody>
-      </table>
-      <!-- transaction history -->
-      </div>
+                    <input id="amountInputBox" type="number" class="form-control" placeholder="Amount" required>
+                </div>
+                <div class="input-group mb-3">
+                    <input type="date" class="form-control" id="transaction-date" required>
+                </div>
+                <div class="input-group mb-3">
+                    <select class="form-select" id="inputGroupSelect01">
+                        <option value="gasto" selected>Gasto</option>
+                        <option value="gastoCo">GastoCo</option>
+                        <option value="ingreso">Ingreso</option>
+                    </select>
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">Notes</span>
+                    <input id="notesInputBox" type="text" class="form-control" placeholder="Transaction notes">
+                </div>
+                <button id="saveTransaction" class="btn btn-success w-100" onclick="saveTransaction()">Save!</button>
+            </div>
+
+            <!-- vars -->
+            <div id="varsTable" style="display: none;">
+                <h3>Current Data</h3>
+                <table class="table table-hover">
+                    <tbody>
+                        <tr><td>Current Balance</td><td id="currentBalance">0</td></tr>
+                        <tr><td>Spend to Date This Month</td><td id="spendToDateThisMonth">0</td></tr>
+                        <tr><td>Spent Per Day</td><td id="spentPerDay">0</td></tr>
+                    </tbody>
+                </table>
+                <h3>Projections</h3>
+                <table class="table table-hover">
+                    <tbody>
+                        <tr><td>Monthly Spent Projection</td><td id="monthlySpentProjection">0</td></tr>
+                        <tr><td>Net Monthly Projection</td><td id="netMonthlyProjection">0</td></tr>
+                    </tbody>
+                </table>
+                <h3>Set Projections</h3>
+                <div class="mb-3">
+                    <label for="projection-date-picker" class="form-label">Projection Target Date</label>
+                    <input type="date" class="form-control" id="projection-date-picker">
+                </div>
+                <table class="table table-hover">
+                    <tbody>
+                        <tr><td>Spending to Date X</td><td id="spendingToDateX">0</td></tr>
+                        <tr><td>Paychecks to Date X</td><td id="paychecksToDateX">0</td></tr>
+                        <tr><td>Projected Income to Date X</td><td id="projectedIncomeToDateX">0</td></tr>
+                        <tr><td>Predicted Cash Balance to Date X</td><td id="predictedCashBalanceToDateX">0</td></tr>
+                        <tr><td>Time to Reach Target</td><td id="timeToReachTarget">N/A</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- transaction history -->
+            <div id="transactionHistoryContainer" style="display: block;">
+                <h3>Transaction History</h3>
+                <table id="transactionHistoryVisibilityTable" class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Fecha</th>
+                            <th scope="col">Tipo</th>
+                            <th scope="col">Monto</th>
+                            <th scope="col">Notas</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
       <!-- Modal 1-->
 <div class="modal fade " id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-lg-down">
@@ -207,6 +153,10 @@
               <label for="paycheck2-input" class="form-label">Paycheck on End of Month</label>
               <input type="number" class="form-control" id="paycheck2-input" value="0">
           </div>
+          <div class="mb-3">
+              <label for="target-cash-input" class="form-label">Target Cash Amount</label>
+              <input type="number" class="form-control" id="target-cash-input" value="0">
+          </div>
           <table  class="table">
               <tbody>
                   <tr>
@@ -225,6 +175,7 @@
 </div>
 <!-- Modal 1 -->
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
       <script src="app.js"></script>
    </body>
 </html>

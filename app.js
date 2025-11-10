@@ -1,5 +1,5 @@
 const transactionHistoryVisibilitybtn = document.getElementById('transactionHistoryVisibilitybtn');
-const transactionHistoryVisibilityTable = document.getElementById('transactionHistoryVisibilityTable');
+const transactionHistoryContainer = document.getElementById('transactionHistoryContainer');
 const varsVisibilitybtn = document.getElementById('varsVisibilitybtn');
 const varsVisibilityTable = document.getElementById('varsTable');
 const addTransactionFormBtn = document.getElementById('addTransactionFormBtn');
@@ -14,13 +14,15 @@ let transactionsArr = [];
 let settings = {
     currentBalance: 0,
     paycheck1: 0,
-    paycheck2: 0
+    paycheck2: 0,
+    targetCash: 0
 };
 //states
 let transactionHistoryTableState = 0;
 let varsTableState = 0;
 let addTransactionTableState = 0;
 let statsTableState = 0;
+let incomeExpenseChart, expenseBreakdownChart, timeToTargetChart;
 const now = new Date();
 // --- Ensures the date is based on the local Buenos Aires time ---
 const year = now.getFullYear();
@@ -49,10 +51,11 @@ function loadDB() {
     if (storedData) {
         const data = JSON.parse(storedData);
         transactionsArr = data.transactionsArr || [];
-        settings = data.settings || { currentBalance: 0, paycheck1: 0, paycheck2: 0 };
+        settings = data.settings || { currentBalance: 0, paycheck1: 0, paycheck2: 0, targetCash: 0 };
         document.getElementById('current-balance-input').value = settings.currentBalance;
         document.getElementById('paycheck1-input').value = settings.paycheck1;
         document.getElementById('paycheck2-input').value = settings.paycheck2;
+        document.getElementById('target-cash-input').value = settings.targetCash;
         console.log("DB data loaded from localStorage.");
         calculateVars(); // Call calculateVars after loading data
     } else {
@@ -63,10 +66,11 @@ function loadDB() {
 function clearDB() {
     localStorage.removeItem('DB');
     transactionsArr = [];
-    settings = { currentBalance: 0, paycheck1: 0, paycheck2: 0 };
+    settings = { currentBalance: 0, paycheck1: 0, paycheck2: 0, targetCash: 0 };
     document.getElementById('current-balance-input').value = 0;
     document.getElementById('paycheck1-input').value = 0;
     document.getElementById('paycheck2-input').value = 0;
+    document.getElementById('target-cash-input').value = 0;
     console.log("All in-memory variables removed.");
     console.log("Successfully removed 'DB' from localStorage.");
     calculateVars();
@@ -76,6 +80,7 @@ function saveSettings() {
     settings.currentBalance = parseFloat(document.getElementById('current-balance-input').value);
     settings.paycheck1 = parseFloat(document.getElementById('paycheck1-input').value);
     settings.paycheck2 = parseFloat(document.getElementById('paycheck2-input').value);
+    settings.targetCash = parseFloat(document.getElementById('target-cash-input').value);
     saveDB();
     calculateVars();
 }
@@ -85,81 +90,162 @@ function logVars() {
     console.log("-----------------------------------");
 }
 function transactionHistoryVisibility() {
-    if (transactionHistoryTableState == 0){
-        transactionHistoryVisibilityTable.style.display = 'table';
-        addTransactionTable.style.display = 'none';
-        varsVisibilityTable.style.display = 'none';
-        statsVisibilityTable.style.display = 'none';
-        transactionHistoryTableState = 1;
-        varsTableState = 0;
-        addTransactionTableState = 0;
-        statsTableState = 0;
-        renderTransactions();
-        console.log('ran 1')
-    }
-/*    else {
-        transactionHistoryVisibilityTable.style.display = 'none';
-        varsVisibilityTable.style.display = 'none';
-        transactionHistoryTableState = 0;
-        addTransactionTableState = 0;
-        console.log('ran 2')
-    } */
+    transactionHistoryContainer.style.display = 'block';
+    addTransactionTable.style.display = 'none';
+    varsVisibilityTable.style.display = 'none';
+    statsVisibilityTable.style.display = 'none';
+    renderTransactions();
 }
+
 function varsVisibility() {
-    if (varsTableState == 0){
-        varsVisibilityTable.style.display = 'block';
-        transactionHistoryVisibilityTable.style.display = 'none';
-        addTransactionTable.style.display = 'none';
-        statsVisibilityTable.style.display = 'none';
-        varsTableState = 1;
-        transactionHistoryTableState = 0;
-        addTransactionTableState = 0;
-        statsTableState = 0;
-        console.log('ran 1')
-    }
-/*   else {
-        transactionHistoryVisibilityTable.style.display = 'none';
-        varsVisibilityTable.style.display = 'none';
-        varsTableState = 0;
-        console.log('ran 2')
-    }*/
+    varsVisibilityTable.style.display = 'block';
+    transactionHistoryContainer.style.display = 'none';
+    addTransactionTable.style.display = 'none';
+    statsVisibilityTable.style.display = 'none';
 }
+
 function statsVisibility() {
-    if (statsTableState == 0){
-        addTransactionTable.style.display = 'none';
-        transactionHistoryVisibilityTable.style.display = 'none';
-        varsVisibilityTable.style.display = 'none';
-        statsVisibilityTable.style.display = 'table';
-        statsTableState = 1;
-        varsTableState = 0;
-        transactionHistoryTableState = 0;
-        addTransactionTableState = 0;
-        console.log('ran 1')
+    statsVisibilityTable.style.display = 'block';
+    addTransactionTable.style.display = 'none';
+    transactionHistoryContainer.style.display = 'none';
+    varsVisibilityTable.style.display = 'none';
+    renderStatisticsCharts();
+}
+
+function renderStatisticsCharts() {
+    // Destroy existing charts if they exist
+    if (incomeExpenseChart) {
+        incomeExpenseChart.destroy();
     }
-/*   else {
-        transactionHistoryVisibilityTable.style.display = 'none';
-        varsVisibilityTable.style.display = 'none';
-        varsTableState = 0;
-        console.log('ran 2')
-    }*/
+    if (expenseBreakdownChart) {
+        expenseBreakdownChart.destroy();
+    }
+    if (timeToTargetChart) {
+        timeToTargetChart.destroy();
+    }
+
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    // --- Income vs. Expense Chart ---
+    const incomeExpenseCtx = document.getElementById('incomeExpenseChart').getContext('2d');
+    let totalIncome = 0;
+    let totalExpenses = 0;
+    const expenseCategories = {};
+
+    transactionsArr.forEach(t => {
+        const transactionDate = new Date(t.date);
+        if (transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear) {
+            const amount = parseFloat(t.amount);
+            if (t.type === 'ingreso') {
+                totalIncome += amount;
+            } else if (t.type === 'gasto' || t.type === 'gastoCo') {
+                totalExpenses += amount;
+                const category = t.notes || 'Uncategorized';
+                expenseCategories[category] = (expenseCategories[category] || 0) + amount;
+            }
+        }
+    });
+
+    incomeExpenseChart = new Chart(incomeExpenseCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Income', 'Expenses'],
+            datasets: [{
+                label: 'Current Month',
+                data: [totalIncome, totalExpenses],
+                backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)'],
+                borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
+                borderWidth: 1
+            }]
+        },
+        options: { scales: { y: { beginAtZero: true } } }
+    });
+
+    // --- Expense Breakdown Chart ---
+    const expenseBreakdownCtx = document.getElementById('expenseBreakdownChart').getContext('2d');
+    const categoryLabels = Object.keys(expenseCategories);
+    const categoryData = Object.values(expenseCategories);
+
+    expenseBreakdownChart = new Chart(expenseBreakdownCtx, {
+        type: 'pie',
+        data: {
+            labels: categoryLabels,
+            datasets: [{
+                label: 'Expense Breakdown',
+                data: categoryData,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        }
+    });
+
+    // --- Time to Target Chart ---
+    const timeToTargetCtx = document.getElementById('timeToTargetChart').getContext('2d');
+    const netMonthlyProjectionText = document.getElementById('netMonthlyProjection').textContent;
+    const netMonthlyProjection = parseFloat(netMonthlyProjectionText);
+    const currentBalanceText = document.getElementById('currentBalance').textContent;
+    let currentBalance = parseFloat(currentBalanceText);
+
+    let labels = [];
+    let data = [];
+
+    if (settings.targetCash > 0 && netMonthlyProjection > 0 && currentBalance < settings.targetCash) {
+        let months = 0;
+        let projectedBalance = currentBalance;
+
+        while (projectedBalance < settings.targetCash && months <= 24) { // Limit to 2 years of projection
+            const monthLabel = new Date(today.getFullYear(), today.getMonth() + months, 1).toLocaleString('default', { month: 'short', year: '2-digit' });
+            labels.push(monthLabel);
+            data.push(projectedBalance);
+
+            projectedBalance += netMonthlyProjection;
+            months++;
+        }
+        labels.push(new Date(today.getFullYear(), today.getMonth() + months, 1).toLocaleString('default', { month: 'short', year: '2-digit' }));
+        data.push(settings.targetCash);
+    }
+
+    timeToTargetChart = new Chart(timeToTargetCtx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Projected Balance',
+                data: data,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                tension: 0.1
+            }, {
+                label: 'Target',
+                data: Array(data.length).fill(settings.targetCash),
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderDash: [5, 5],
+                fill: false
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: false
+                }
+            }
+        }
+    });
 }
 function newTransactionFormDisplay() {
-    if (addTransactionTableState == 0){
-        addTransactionTable.style.display = 'table';
-        transactionHistoryVisibilityTable.style.display = 'none';
-        varsVisibilityTable.style.display = 'none';
-        statsVisibilityTable.style.display = 'none';
-        addTransactionTableState = 1;
-        transactionHistoryTableState = 0;
-        varsTableState = 0;
-        statsTableState = 0;
-        console.log('ran 1')
-        amountInputBox.focus();
-    }
-    else {
-        amountInputBox.focus();
-        console.log('ran 2')
-    }
+    addTransactionTable.style.display = 'block';
+    transactionHistoryContainer.style.display = 'none';
+    varsVisibilityTable.style.display = 'none';
+    statsVisibilityTable.style.display = 'none';
+    amountInputBox.focus();
 }
 function saveTransaction() {
     if(inputGroupSizingSm.value == "" || undefined){
@@ -187,6 +273,7 @@ function saveTransaction() {
     inputGroupSizingSm.value = ''
     renderTransactions();
     calculateVars();
+    renderStatisticsCharts();
 }
 //import export CSV
 function exportToCsv() {
@@ -249,6 +336,7 @@ function deleteTransaction(index) {
         saveDB();
         renderTransactions();
         calculateVars();
+        renderStatisticsCharts();
     }
 }
 
@@ -311,6 +399,7 @@ function saveEditedTransaction(index) {
     saveDB();
     renderTransactions();
     calculateVars();
+    renderStatisticsCharts();
 }
 window.onload = () => {
     setTimeout(() => {
@@ -319,6 +408,7 @@ window.onload = () => {
     }, 1000);
     renderTransactions();
     loadDB();
+    renderStatisticsCharts();
 
     document.getElementById('projection-date-picker').addEventListener('change', calculateVars);
 };
@@ -359,11 +449,11 @@ function calculateVars() {
     });
 
     // Update "Current Data" and "Projections" tables
-    document.getElementById('currentBalance').textContent = currentBalance.toFixed(2);
-    document.getElementById('spendToDateThisMonth').textContent = (-spendToDateThisMonth).toFixed(2);
-    document.getElementById('spentPerDay').textContent = (-spentPerDay).toFixed(2);
-    document.getElementById('monthlySpentProjection').textContent = (-monthlySpentProjection).toFixed(2);
-    document.getElementById('netMonthlyProjection').textContent = netMonthlyProjection.toFixed(2);
+    document.getElementById('currentBalance').textContent = Math.trunc(currentBalance);
+    document.getElementById('spendToDateThisMonth').textContent = Math.trunc(-spendToDateThisMonth);
+    document.getElementById('spentPerDay').textContent = Math.trunc(-spentPerDay);
+    document.getElementById('monthlySpentProjection').textContent = Math.trunc(-monthlySpentProjection);
+    document.getElementById('netMonthlyProjection').textContent = Math.trunc(netMonthlyProjection);
 
     // Handle "Set Projections"
     if (projectionDate && projectionDate >= today) {
@@ -393,15 +483,23 @@ function calculateVars() {
 
         const predictedCashBalanceToDateX = currentBalance - spendingToDateX + projectedIncomeToDateX;
 
-        document.getElementById('spendingToDateX').textContent = (-spendingToDateX).toFixed(2);
+        document.getElementById('spendingToDateX').textContent = Math.trunc(-spendingToDateX);
         document.getElementById('paychecksToDateX').textContent = `${paycheckCount} paycheck(s)`;
-        document.getElementById('projectedIncomeToDateX').textContent = projectedIncomeToDateX.toFixed(2);
-        document.getElementById('predictedCashBalanceToDateX').textContent = predictedCashBalanceToDateX.toFixed(2);
+        document.getElementById('projectedIncomeToDateX').textContent = Math.trunc(projectedIncomeToDateX);
+        document.getElementById('predictedCashBalanceToDateX').textContent = Math.trunc(predictedCashBalanceToDateX);
     } else {
         // Clear projection fields if date is not valid
         document.getElementById('spendingToDateX').textContent = "0";
         document.getElementById('paychecksToDateX').textContent = "0";
         document.getElementById('projectedIncomeToDateX').textContent = "0";
         document.getElementById('predictedCashBalanceToDateX').textContent = "0";
+    }
+
+    // Calculate time to reach target
+    if (settings.targetCash > 0 && netMonthlyProjection > 0) {
+        const monthsToTarget = (settings.targetCash - currentBalance) / netMonthlyProjection;
+        document.getElementById('timeToReachTarget').textContent = `${Math.ceil(monthsToTarget)} months`;
+    } else {
+        document.getElementById('timeToReachTarget').textContent = "N/A";
     }
 }

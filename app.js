@@ -229,15 +229,15 @@ function renderTransactions() {
     cell4.innerHTML = transaction.amount;
     cell5.innerHTML = transaction.notes;
 
-    const editButton = document.createElement('button');
+    const editButton = document.createElement('span');
     editButton.textContent = '✏️';
-    editButton.className = 'btn btn-warning btn-sm';
+    editButton.className = 'action-emoji';
     editButton.onclick = () => editTransaction(index);
     cell6.appendChild(editButton);
 
-    const deleteButton = document.createElement('button');
+    const deleteButton = document.createElement('span');
     deleteButton.textContent = '🚫';
-    deleteButton.className = 'btn btn-danger btn-sm';
+    deleteButton.className = 'action-emoji';
     deleteButton.onclick = () => deleteTransaction(index);
     cell6.appendChild(deleteButton);
   });
@@ -373,26 +373,29 @@ function calculateVars() {
         const spendingToDateX = spentPerDay * daysToProjection;
 
         // Correctly calculate paychecks between today and projection date
-        let paychecksToDateX = 0;
+        let projectedIncomeToDateX = 0;
+        let paycheckCount = 0;
         let tempDate = new Date(today);
         while(tempDate <= projectionDate) {
             const dayOfMonth = tempDate.getDate();
             const lastDayOfMonth = new Date(tempDate.getFullYear(), tempDate.getMonth() + 1, 0).getDate();
 
-            if (dayOfMonth === 15) {
-                paychecksToDateX += settings.paycheck1;
+            if (dayOfMonth === 15 && settings.paycheck1 > 0) {
+                projectedIncomeToDateX += settings.paycheck1;
+                paycheckCount++;
             }
-            if (dayOfMonth === lastDayOfMonth) {
-                paychecksToDateX += settings.paycheck2;
+            if (dayOfMonth === lastDayOfMonth && settings.paycheck2 > 0) {
+                projectedIncomeToDateX += settings.paycheck2;
+                paycheckCount++;
             }
             tempDate.setDate(tempDate.getDate() + 1);
         }
 
-        const predictedCashBalanceToDateX = currentBalance - spendingToDateX + paychecksToDateX;
+        const predictedCashBalanceToDateX = currentBalance - spendingToDateX + projectedIncomeToDateX;
 
         document.getElementById('spendingToDateX').textContent = (-spendingToDateX).toFixed(2);
-        document.getElementById('paychecksToDateX').textContent = paychecksToDateX.toFixed(2);
-        document.getElementById('projectedIncomeToDateX').textContent = paychecksToDateX.toFixed(2);
+        document.getElementById('paychecksToDateX').textContent = `${paycheckCount} paycheck(s)`;
+        document.getElementById('projectedIncomeToDateX').textContent = projectedIncomeToDateX.toFixed(2);
         document.getElementById('predictedCashBalanceToDateX').textContent = predictedCashBalanceToDateX.toFixed(2);
     } else {
         // Clear projection fields if date is not valid

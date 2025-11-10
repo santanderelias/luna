@@ -147,3 +147,8 @@ img {
     background-color: #0056b3;
     transform: translateY(-3px);
 }
+
+.action-emoji {
+    cursor: pointer;
+    margin-right: 5px;
+}

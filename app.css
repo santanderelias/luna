@@ -26,6 +26,10 @@ img {
 	height: auto;
 }
 
+#statisticsTable{
+    display: none;
+}
+
 #transactionHistoryVisibilityTable{
 	display: none;  
 }
@@ -73,74 +77,73 @@ img {
 }
 
 /* nav bar */
+.navbar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 400px;
+    background-color: white;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-radius: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    padding: 5px;
+}
 
-        .navbar {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 400px;
-            background-color: white;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            border-radius: 30px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            padding: 5px;
-        }
+.nav-button {
+    background: none;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    transition: transform 0.2s ease;
+}
 
-        .nav-button {
-            background: none;
-            border: none;
-            padding: 10px;
-            cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex-grow: 1;
-            transition: transform 0.2s ease;
-        }
+.nav-button img {
+    width: 24px;
+    height: 24px;
+    filter: grayscale(100%) brightness(150%);
+    transition: filter 0.3s ease;
+}
 
-        .nav-button img {
-            width: 24px;
-            height: 24px;
-            filter: grayscale(100%) brightness(150%);
-            transition: filter 0.3s ease;
-        }
+.nav-button:hover img,
+.nav-button.active img {
+    filter: none;
+}
 
-        .nav-button:hover img,
-        .nav-button.active img {
-            filter: none;
-        }
-
-        .nav-button.special {
-            background-color: #007AFF;
-            color: white;
-            border-radius: 50%;
-            width: 56px;
-            height: 56px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            bottom: 10px;
-            box-shadow: 0 5px 15px rgba(0, 122, 255, 0.4);
-            transition: background-color 0.3s ease, transform 0.3s ease;
-            flex-shrink: 0; /* Prevent shrinking */
-            flex-grow: 0; /* Prevent growing */
-        }
+.nav-button.special {
+    background-color: #007AFF;
+    color: white;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    bottom: 10px;
+    box-shadow: 0 5px 15px rgba(0, 122, 255, 0.4);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    flex-shrink: 0; /* Prevent shrinking */
+    flex-grow: 0; /* Prevent growing */
+}
         
-        .nav-button.special img {
-            width: 28px;
-            height: 28px;
-            filter: brightness(0) invert(1);
-        }
+.nav-button.special img {
+    width: 28px;
+    height: 28px;
+    filter: brightness(0) invert(1);
+}
 
-        .nav-button.special:hover {
-            background-color: #0056b3;
-            transform: translateY(-3px);
-        }
+.nav-button.special:hover {
+    background-color: #0056b3;
+    transform: translateY(-3px);
+}

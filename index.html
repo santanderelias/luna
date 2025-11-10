@@ -11,7 +11,7 @@
       <!-- nav -->
 
     <div class="navbar">
-        <a href="#" class="nav-button active" type="button" class="btn btn-dark" onclick="logVars()">
+        <a href="#" class="nav-button active" type="button" class="btn btn-dark" onclick="logVars(); statsVisibility()">
             <img src="res/a.png" alt="Home">
         </a>
         <a href="#" class="nav-button" id="transactionHistoryVisibilitybtn" type="button" class="btn btn-dark" onclick="transactionHistoryVisibility()">
@@ -29,6 +29,46 @@
     </div>
 <!-- nav -->
     <div class="container card">
+      <!-- statistics table -->
+      <table id="statisticsTable" class="table">
+         <thead>
+            <tr>
+               <th scope="col">Statistics</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr scope="row">
+               <td class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+               </td>
+            </tr scope="row">
+            <tr scope="row">
+               <td class="input-group input-group-sm">
+                     <p>Paragraph</p>
+               </td>
+            </tr>
+            <tr scope="row">
+               <td class="input-group input-group-sm">
+                 <select class="form-select" id="select01">
+                   <option value="Selection1" selected>Selection1</option>
+                   <option value="Selection2">Selection2</option>
+                   <option value="Selection3">Sel3</option>
+                 </select>
+               </td>
+            </tr>
+            <tr scope="row">
+               <td class="input-group input-group-sm">
+                 <span class="input-group-text" id="inputGroup-sizing-sm">Notes</span>
+               </td>
+            </tr>
+            <tr scope="row">
+               <td>
+                  <button id="saveTransaction" class="btn btn-success" onclick="saveTransaction()">Calculate</button>
+               </td>
+            </tr>
+         </tbody>
+      </table>
+      <!-- add transaction table -->
       <!-- add transaction table -->
       <table id="addTransactionTable" class="table table-striped-columns">
          <thead>
@@ -148,6 +188,7 @@
                <th scope="col">Tipo</th>
                <th scope="col">Monto</th>
                <th scope="col">Notas</th>
+               <th scope="col">Edit</th>
             </tr>
          </thead>
          <tbody>

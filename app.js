@@ -47,18 +47,39 @@ function loadDB() {
     }
 }
 
+function showConfirmationModal(message, callback) {
+    const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+    const modalBody = document.getElementById('confirmationModalBody');
+    const confirmBtn = document.getElementById('confirmActionBtn');
+
+    modalBody.textContent = message;
+
+    // Clone and replace the button to remove old event listeners
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+    newConfirmBtn.addEventListener('click', () => {
+        callback();
+        confirmationModal.hide();
+    });
+
+    confirmationModal.show();
+}
+
 function clearDB() {
-    localStorage.removeItem('DB');
-    transactionsArr = [];
-    settings = { currentBalance: 0, paycheck1: 0, paycheck2: 0, targetCash: 0, fixedExpenses: [] };
-    document.getElementById('current-balance-input').value = 0;
-    document.getElementById('paycheck1-input').value = 0;
-    document.getElementById('paycheck2-input').value = 0;
-    document.getElementById('target-cash-input').value = 0;
-    console.log("All in-memory variables removed.");
-    console.log("Successfully removed 'DB' from localStorage.");
-    renderFixedExpenses();
-    calculateVars();
+    showConfirmationModal('Are you sure you want to reset the app? This will delete all your data.', () => {
+        localStorage.removeItem('DB');
+        transactionsArr = [];
+        settings = { currentBalance: 0, paycheck1: 0, paycheck2: 0, targetCash: 0, fixedExpenses: [] };
+        document.getElementById('current-balance-input').value = 0;
+        document.getElementById('paycheck1-input').value = 0;
+        document.getElementById('paycheck2-input').value = 0;
+        document.getElementById('target-cash-input').value = 0;
+        console.log("All in-memory variables removed.");
+        console.log("Successfully removed 'DB' from localStorage.");
+        renderFixedExpenses();
+        calculateVars();
+    });
 }
 
 function saveSettings() {
@@ -109,12 +130,12 @@ function addFixedExpense() {
 }
 
 function deleteFixedExpense(index) {
-    if (confirm('Are you sure you want to delete this fixed expense?')) {
+    showConfirmationModal('Are you sure you want to delete this fixed expense?', () => {
         settings.fixedExpenses.splice(index, 1);
         saveDB();
         renderFixedExpenses();
         calculateVars();
-    }
+    });
 }
 
 function showPage(pageName) {
@@ -405,13 +426,13 @@ function renderTransactions() {
 }
 
 function deleteTransaction(index) {
-    if (confirm('Are you sure you want to delete this transaction?')) {
+    showConfirmationModal('Are you sure you want to delete this transaction?', () => {
         transactionsArr.splice(index, 1);
         saveDB();
         renderTransactions();
         calculateVars();
         renderStatisticsCharts();
-    }
+    });
 }
 
 function editTransaction(index) {

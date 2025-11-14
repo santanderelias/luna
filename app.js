@@ -1,13 +1,5 @@
-const transactionHistoryVisibilitybtn = document.getElementById('transactionHistoryVisibilitybtn');
-const transactionHistoryContainer = document.getElementById('transactionHistoryContainer');
-const varsVisibilitybtn = document.getElementById('varsVisibilitybtn');
-const varsVisibilityTable = document.getElementById('varsTable');
-const addTransactionFormBtn = document.getElementById('addTransactionFormBtn');
-const addTransactionTable = document.getElementById('addTransactionTable');
 const amountInputBox = document.getElementById('amountInputBox');
-const statsVisibilityTable = document.getElementById('statisticsTable')
 const transactionDate = document.getElementById('transaction-date');
-//const rangeValue = document.getElementById('rangeValue');
 const inputGroupSizingSm = document.getElementById('notesInputBox');
 let transactionsArr = [];
 let settings = {
@@ -17,25 +9,14 @@ let settings = {
     targetCash: 0,
     fixedExpenses: []
 };
-//states
-let transactionHistoryTableState = 0;
-let varsTableState = 0;
-let addTransactionTableState = 0;
-let statsTableState = 0;
 let incomeExpenseChart, expenseBreakdownChart, timeToTargetChart;
 const now = new Date();
-// --- Ensures the date is based on the local Buenos Aires time ---
 const year = now.getFullYear();
-// .getMonth() is 0-indexed, so add 1 (January=0, December=11)
 const month = String(now.getMonth() + 1).padStart(2, '0');
 const day = String(now.getDate()).padStart(2, '0');
 const localFormattedDate = `${year}-${month}-${day}`;
-// Output will be: "2025-11-09" (Guaranteed to be the local day in Buenos Aires)
-console.log(`setting date to ${localFormattedDate}`);
-// Output will be today's date in YYYY-MM-DD format (e.g., "2025-11-09") 
-//set default date
 transactionDate.value = localFormattedDate;
-// based on UTC time.
+
 function saveDB() {
     const data = {
         transactionsArr: transactionsArr,
@@ -60,9 +41,9 @@ function loadDB() {
         document.getElementById('target-cash-input').value = settings.targetCash;
         console.log("DB data loaded from localStorage.");
         renderFixedExpenses();
-        calculateVars(); // Call calculateVars after loading data
+        calculateVars();
     } else {
-        console.log("DB  not found in localStorage. Variables remain at default values (0).");
+        console.log("DB not found in localStorage. Variables remain at default values (0).");
     }
 }
 
@@ -87,6 +68,7 @@ function saveSettings() {
     settings.targetCash = parseFloat(document.getElementById('target-cash-input').value);
     saveDB();
     calculateVars();
+    showPage('statistics');
 }
 
 function renderFixedExpenses() {
@@ -135,34 +117,34 @@ function deleteFixedExpense(index) {
     }
 }
 
-function logVars() {
-    console.log("--- Current Financial Variables ---");
-    console.log(transactionsArr)
-    console.log("-----------------------------------");
-}
-function showSection(sectionId) {
-    // Hide all sections
-    statsVisibilityTable.style.display = 'none';
-    varsVisibilityTable.style.display = 'none';
-    transactionHistoryContainer.style.display = 'none';
-    addTransactionTable.style.display = 'none';
+function showPage(pageName) {
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
 
-    // Show the requested section
-    const section = document.getElementById(sectionId);
-    if (section) {
-        section.style.display = 'block';
+    const page = document.getElementById(`page-${pageName}`);
+    if (page) {
+        page.classList.add('active');
     }
 
-    // Call render functions if necessary
-    if (sectionId === 'transactionHistoryContainer') {
+    document.querySelectorAll('.nav-button').forEach(button => {
+        button.classList.remove('active');
+    });
+    const navButton = document.querySelector(`.nav-button[data-page="${pageName}"]`);
+    if (navButton) {
+        navButton.classList.add('active');
+    }
+
+    if (pageName === 'history') {
         renderTransactions();
-    } else if (sectionId === 'statisticsTable') {
+    } else if (pageName === 'statistics') {
         renderStatisticsCharts();
+    } else if (pageName === 'add-transaction') {
+        amountInputBox.focus();
     }
 }
 
 function renderStatisticsCharts() {
-    // Destroy existing charts if they exist
     if (incomeExpenseChart) {
         incomeExpenseChart.destroy();
     }
@@ -177,7 +159,6 @@ function renderStatisticsCharts() {
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
 
-    // --- Income vs. Expense Chart ---
     const incomeExpenseCtx = document.getElementById('incomeExpenseChart').getContext('2d');
     let totalIncome = 0;
     let totalExpenses = 0;
@@ -212,7 +193,6 @@ function renderStatisticsCharts() {
         options: { scales: { y: { beginAtZero: true } } }
     });
 
-    // --- Expense Breakdown Chart ---
     const expenseBreakdownCtx = document.getElementById('expenseBreakdownChart').getContext('2d');
     const categoryLabels = Object.keys(expenseCategories);
     const categoryData = Object.values(expenseCategories);
@@ -237,7 +217,6 @@ function renderStatisticsCharts() {
         }
     });
 
-    // --- Time to Target Chart ---
     const timeToTargetCtx = document.getElementById('timeToTargetChart').getContext('2d');
     const netMonthlyProjectionText = document.getElementById('netMonthlyProjection').textContent;
     const netMonthlyProjection = parseFloat(netMonthlyProjectionText);
@@ -251,7 +230,7 @@ function renderStatisticsCharts() {
         let months = 0;
         let projectedBalance = currentBalance;
 
-        while (projectedBalance < settings.targetCash && months <= 24) { // Limit to 2 years of projection
+        while (projectedBalance < settings.targetCash && months <= 24) {
             const monthLabel = new Date(today.getFullYear(), today.getMonth() + months, 1).toLocaleString('default', { month: 'short', year: '2-digit' });
             labels.push(monthLabel);
             data.push(projectedBalance);
@@ -289,10 +268,7 @@ function renderStatisticsCharts() {
         }
     });
 }
-function newTransactionFormDisplay() {
-    showSection('addTransactionTable');
-    amountInputBox.focus();
-}
+
 function saveTransaction() {
     if(inputGroupSizingSm.value == "" || undefined){
         inputGroupSizingSm.value = 'Sin Notas'
@@ -302,24 +278,21 @@ function saveTransaction() {
     }
        if(amountInputBox.value == "" || undefined){
         window.alert('Invalid amount');
-        invalidAmount;
+        return;
     }
   const transaction = {
     amount: amountInputBox.value,
     date: transactionDate.value,
     type: 'gasto',
-    //rated: rangeValue.value,
     notes: inputGroupSizingSm.value
   };
   transactionsArr.push(transaction);
-  console.log(transactionsArr);
   saveDB()
     amountInputBox.value = ''
     transactionDate.value = localFormattedDate;
     inputGroupSizingSm.value = ''
-    renderTransactions();
     calculateVars();
-    renderStatisticsCharts();
+    showPage('history');
 }
 
 function addIncome() {
@@ -347,32 +320,10 @@ function addIncome() {
     }
 }
 
-//import export CSV
-function exportToCsv() {
-  const header = Object.keys(transactionsArr[0]).join(',');
-  const csv = transactionsArr.map(row => Object.values(row).join(',')).join('\n');
-  return `${header}\n${csv}`;
-}
-function importFromCsv(csvContent) {
-  const [header, ...rows] = csvContent.split('\n').map(row => row.split(','));
-  transactionsArr = rows.map(row => {
-    return {
-      amount: row[0],
-      date: row[1],
-      type: row[2],
-      //rated: row[3],
-      notes: row[3]
-    };
-  });
-  saveDB()
-  console.log(transactionsArr);
-}
-//fin import/export
 function getRelativeDateString(date) {
     const today = new Date();
     const transactionDate = new Date(date);
 
-    // Reset time part for accurate date comparison
     today.setHours(0, 0, 0, 0);
     transactionDate.setHours(0, 0, 0, 0);
 
@@ -390,19 +341,16 @@ function getRelativeDateString(date) {
     } else if (transactionDate.getMonth() === today.getMonth() && transactionDate.getFullYear() === today.getFullYear()) {
         return "This Month";
     } else {
-        // Format as "Month Year" for older transactions
         return transactionDate.toLocaleString('default', { month: 'long', year: 'numeric' });
     }
 }
 
 function renderTransactions() {
   const tableBody = document.getElementById('transactionHistoryVisibilityTable').getElementsByTagName('tbody')[0];
-  tableBody.innerHTML = ''; // Clear existing rows
+  tableBody.innerHTML = '';
 
-  // Sort transactions by date in descending order
   const sortedTransactions = [...transactionsArr].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  // Group transactions by relative date string
   const groupedTransactions = sortedTransactions.reduce((groups, transaction) => {
     const relativeDate = getRelativeDateString(transaction.date);
     if (!groups[relativeDate]) {
@@ -412,39 +360,33 @@ function renderTransactions() {
     return groups;
   }, {});
 
-  // Render grouped transactions
   for (const groupName in groupedTransactions) {
-    // Add a date header row
     const headerRow = tableBody.insertRow();
     headerRow.className = 'date-group';
     const headerCell = headerRow.insertCell(0);
-    headerCell.colSpan = 4; // Span across all columns (reduced from 5 to 4)
+    headerCell.colSpan = 4;
     headerCell.innerHTML = `<span class="date-group-tag">${groupName}</span>`;
 
-    // Add transaction rows for the current group
     groupedTransactions[groupName].forEach(transaction => {
       const newRow = tableBody.insertRow();
       newRow.className = 'transaction-row';
 
-      // Add class for color-coding the row
       if (transaction.type === 'ingreso') {
         newRow.classList.add('table-success');
       } else if (transaction.type === 'gasto') {
         newRow.classList.add('table-danger');
       }
 
-      const cell1 = newRow.insertCell(0); // Date
-      const cell2 = newRow.insertCell(1); // Amount
-      const cell3 = newRow.insertCell(2); // Notes
-      const cell4 = newRow.insertCell(3); // Actions
+      const cell1 = newRow.insertCell(0);
+      const cell2 = newRow.insertCell(1);
+      const cell3 = newRow.insertCell(2);
+      const cell4 = newRow.insertCell(3);
 
-      // I need to find the original index to pass to edit/delete functions
       const originalIndex = transactionsArr.indexOf(transaction);
 
-      cell1.innerHTML = transaction.date.substring(5); // MM-DD format
+      cell1.innerHTML = transaction.date.substring(5);
       cell2.innerHTML = transaction.amount;
       cell2.classList.add('amount');
-      // No need for income/expense class here, as the row itself is colored
       cell3.innerHTML = transaction.notes;
 
       const editButton = document.createElement('span');
@@ -475,16 +417,13 @@ function deleteTransaction(index) {
 function editTransaction(index) {
   const transaction = transactionsArr[index];
 
-  // Populate the modal fields
   document.getElementById('edit-transaction-index').value = index;
   document.getElementById('edit-transaction-date').value = transaction.date;
   document.getElementById('edit-transaction-amount').value = transaction.amount;
   document.getElementById('edit-transaction-notes').value = transaction.notes;
 
-  // Set the correct radio button for type
   document.querySelector(`input[name="editTransactionType"][value="${transaction.type}"]`).checked = true;
 
-  // Show the modal
   const editModal = new bootstrap.Modal(document.getElementById('editTransactionModal'));
   editModal.show();
 }
@@ -511,22 +450,9 @@ function saveEditedTransaction() {
     calculateVars();
     renderStatisticsCharts();
 
-    // Hide the modal
     const editModal = bootstrap.Modal.getInstance(document.getElementById('editTransactionModal'));
     editModal.hide();
 }
-window.onload = () => {
-    setTimeout(() => {
-    document.getElementById('amountInputBox').focus();
-    console.log('done')
-    }, 1000);
-    loadDB();
-    renderTransactions();
-    renderStatisticsCharts();
-    showSection('addTransactionTable');
-
-    document.getElementById('projection-date-picker').addEventListener('change', calculateVars);
-};
 
 function calculateVars() {
     const projectionDatePicker = document.getElementById('projection-date-picker');
@@ -564,21 +490,15 @@ function calculateVars() {
         }
     });
 
-    // Update "Current Data" and "Projections" tables
     document.getElementById('currentBalance').textContent = Math.trunc(currentBalance);
     document.getElementById('spendToDateThisMonth').textContent = Math.trunc(-spendToDateThisMonth);
     document.getElementById('spentPerDay').textContent = Math.trunc(-spentPerDay);
     document.getElementById('monthlySpentProjection').textContent = Math.trunc(-monthlySpentProjection);
     document.getElementById('netMonthlyProjection').textContent = Math.trunc(netMonthlyProjection);
 
-    // Handle "Set Projections"
     if (projectionDate && projectionDate >= today) {
         const daysToProjection = Math.ceil((projectionDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
-
-        // Forward-projected spending
         const spendingToDateX = spentPerDay * daysToProjection;
-
-        // Correctly calculate paychecks between today and projection date
         let projectedIncomeToDateX = 0;
         let paycheckCount = 0;
         let tempDate = new Date(today);
@@ -604,14 +524,12 @@ function calculateVars() {
         document.getElementById('projectedIncomeToDateX').textContent = Math.trunc(projectedIncomeToDateX);
         document.getElementById('predictedCashBalanceToDateX').textContent = Math.trunc(predictedCashBalanceToDateX);
     } else {
-        // Clear projection fields if date is not valid
         document.getElementById('spendingToDateX').textContent = "0";
         document.getElementById('paychecksToDateX').textContent = "0";
         document.getElementById('projectedIncomeToDateX').textContent = "0";
         document.getElementById('predictedCashBalanceToDateX').textContent = "0";
     }
 
-    // Calculate time to reach target
     if (settings.targetCash > 0 && netMonthlyProjection > 0) {
         const monthsToTarget = (settings.targetCash - currentBalance) / netMonthlyProjection;
         document.getElementById('timeToReachTarget').textContent = `${Math.ceil(monthsToTarget)} months`;
@@ -619,3 +537,18 @@ function calculateVars() {
         document.getElementById('timeToReachTarget').textContent = "N/A";
     }
 }
+
+window.onload = () => {
+    loadDB();
+    showPage('add-transaction');
+
+    document.querySelectorAll('.nav-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const pageName = button.getAttribute('data-page');
+            showPage(pageName);
+        });
+    });
+
+    document.getElementById('projection-date-picker').addEventListener('change', calculateVars);
+};

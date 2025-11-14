@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 
 :root {
@@ -8,17 +9,8 @@
     --text-color: #333333;
     --border-color: #e0e0e0;
     --shadow-color: rgba(0, 0, 0, 0.1);
-}
-
-body {
-    margin: 0;
-    background-color: var(--background-color);
-    font-family: 'Inter', sans-serif;
-    color: var(--text-color);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100vh;
+    --navbar-height: 65px;
+    --active-nav-background: #eef5ff;
 }
 
 html, body {
@@ -26,63 +18,74 @@ html, body {
     margin: 0;
     box-sizing: border-box;
     overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
-img {
-    max-width: 100%;
-    height: auto;
+.app-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: var(--navbar-height);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 1rem;
 }
 
-#statisticsTable,
-#transactionHistoryContainer,
-#varsTable {
+.page {
     display: none;
-}
-
-#varsTable, #transactionHistoryVisibilityTable {
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.container {
-    width: 100%;
+    flex-direction: column;
     height: 100%;
-    margin-top: 0;
-    margin-bottom: 80px; /* Space for the fixed navbar */
-    padding: 0;
-    overflow-y: auto; /* Allow vertical scrolling */
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-    box-sizing: border-box;
+    animation: fadeIn 0.3s ease-in-out;
 }
 
-@media (min-width: 600px) {
-  .container {
-    width: 100%;
-    max-width: 100%;
-  }
+.page.active {
+    display: flex;
 }
 
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.page-header {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+}
+
+.page-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.page-content {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+/* Navbar */
 .navbar {
     position: fixed;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 400px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--navbar-height);
     background-color: var(--card-background-color);
     display: flex;
     justify-content: space-around;
-    align-items: center;
-    border-radius: 30px;
-    box-shadow: 0 4px 12px var(--shadow-color);
+    align-items: flex-start;
+    box-shadow: 0 -2px 10px var(--shadow-color);
     z-index: 1000;
-    padding: 5px;
+    padding: 8px 10px 0;
 }
 
 .nav-button {
     background: none;
     border: none;
-    padding: 10px;
     cursor: pointer;
     text-decoration: none;
     display: flex;
@@ -90,7 +93,12 @@ img {
     align-items: center;
     justify-content: center;
     flex-grow: 1;
-    transition: transform 0.2s ease;
+    color: #8e8e93;
+    font-size: 0.7rem;
+    transition: all 0.3s ease;
+    border-radius: 10px;
+    padding: 4px 0;
+    max-width: 80px;
 }
 
 .nav-button img {
@@ -100,12 +108,23 @@ img {
     transition: filter 0.3s ease;
 }
 
-.nav-button:hover img,
+.nav-button:hover {
+    background-color: var(--active-nav-background);
+}
+
+.nav-button.active {
+    color: var(--primary-color);
+    background-color: var(--active-nav-background);
+    font-weight: 700;
+}
+
 .nav-button.active img {
     filter: none;
 }
 
 .nav-button.special {
+    flex-grow: 0; /* Do not allow to grow */
+    flex-shrink: 0; /* Do not allow to shrink */
     background-color: var(--primary-color);
     color: white;
     border-radius: 50%;
@@ -115,11 +134,9 @@ img {
     align-items: center;
     justify-content: center;
     position: relative;
-    bottom: 8px;
+    bottom: 20px;
     box-shadow: 0 5px 15px rgba(0, 122, 255, 0.4);
     transition: background-color 0.3s ease, transform 0.3s ease;
-    flex-shrink: 0;
-    flex-grow: 0;
 }
 
 .nav-button.special img {
@@ -133,140 +150,64 @@ img {
     transform: translateY(-3px);
 }
 
-.card {
-    background-color: var(--card-background-color);
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    padding: 1rem;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.nav-button.special.active {
+    background-color: var(--primary-hover-color);
 }
 
-h3 {
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 0.5rem;
-    margin-top: 1.5rem;
+
+/* Charts */
+.chart-container {
+    position: relative;
     margin-bottom: 1.5rem;
-    font-weight: 700;
+    padding: 1rem;
+    background-color: var(--card-background-color);
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px var(--shadow-color);
 }
 
-.btn-group {
-    width: 100%;
+/* Tables */
+.table {
+    background-color: var(--card-background-color);
+    border-radius: 0.5rem;
+    overflow: hidden;
 }
 
-.btn-group .btn {
-    flex-grow: 1;
+.table thead th {
+    background-color: #f8f9fa;
+}
+
+/* Transaction History Specifics */
+#transactionHistoryVisibilityTable .date-group-tag {
+    display: inline-block;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    padding: 0.2rem 0.6rem;
+    border-radius: 1rem;
+    font-weight: 500;
+    font-size: 0.75rem;
+    margin: 1rem 0 0.5rem;
+}
+
+#transactionHistoryVisibilityTable .date-group td {
+    text-align: left;
+    padding-left: 0.5rem;
 }
 
 .action-emoji {
     cursor: pointer;
-    margin-right: 5px;
+    margin-right: 10px;
     font-size: 1.2em;
 }
 
-#transactionHistoryVisibilityTable .date-group {
-    font-weight: 500;
-    background-color: var(--background-color);
+/* Modals */
+.modal-content {
+    border-radius: 0.75rem;
 }
 
-#transactionHistoryVisibilityTable .transaction-row .amount {
-    font-weight: 500;
+.modal-header {
+    border-bottom: none;
 }
 
-#transactionHistoryVisibilityTable .transaction-row .amount.income {
-    color: #28a745; /* Green for income */
-}
-
-#transactionHistoryVisibilityTable .transaction-row .amount.expense {
-    color: #dc3545; /* Red for expense */
-}
-
-/* Add Transaction Form */
-#amountInputBox {
-    font-size: 2.5rem;
-    height: auto;
-    text-align: center;
-    font-weight: 700;
-}
-
-/* Vars Table */
-#varsTable .table {
-    margin-bottom: 1.5rem;
-}
-
-#varsTable .table-responsive {
-    overflow-x: auto;
-}
-
-/* Statistics Table */
-#statisticsTable {
-    width: 100%;
-}
-
-#statisticsTable canvas {
-    max-width: 100%;
-    width: 100% !important;
-    height: 100% !important;
-    display: block;
-    margin: 0 auto;
-}
-
-.chart-container {
-    position: relative;
-    max-height: 150px; /* Adjust as needed */
-    margin-bottom: 1rem;
-    width: 100%;
-    text-align: center;
-}
-
-/* Date Group Tags */
-.date-group-tag {
-    display: inline-block;
-    background-color: var(--primary-color);
-    color: white;
-    padding: 0.1rem 0.3rem;
-    border-radius: 1rem;
-    font-weight: 500;
-    font-size: 0.65rem;
-}
-
-#transactionHistoryVisibilityTable .date-group td {
-    text-align: center;
-    padding-top: 1rem;
-    padding-bottom: 0.5rem;
-}
-
-#transactionHistoryVisibilityTable thead th {
-    font-size: 0.9rem;
-}
-
-/* Transaction Type Tags (Re-added) */
-.transaction-type-tag {
-    display: inline-block;
-    padding: 0.15rem 0.4rem;
-    border-radius: 0.5rem;
-    font-size: 0.7rem;
-    font-weight: 500;
-    color: white;
-    text-transform: capitalize;
-}
-
-.transaction-type-tag.gasto {
-    background-color: #dc3545; /* Red */
-}
-
-.transaction-type-tag.ingreso {
-    background-color: #28a745; /* Green */
-}
-
-/* Fixed Expense Tags (Modified to use transaction-type-tag base) */
-.transaction-type-tag.fixed-expense {
-    background-color: #ffc107; /* Yellow */
-    color: #333333; /* Dark text for contrast */
-    padding: 0.1rem 0.3rem; /* Smaller padding */
-    border-radius: 0.4rem; /* Smaller border-radius */
-    font-size: 0.65rem; /* Smaller font size */
+.modal-footer {
+    border-top: none;
 }

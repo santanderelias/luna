@@ -51,9 +51,15 @@
             <!-- statistics table -->
             <div id="statisticsTable" style="display: none;">
                 <h3>Statistics</h3>
-                <canvas id="incomeExpenseChart"></canvas>
-                <canvas id="expenseBreakdownChart" class="mt-4"></canvas>
-                <canvas id="timeToTargetChart" class="mt-4"></canvas>
+                <div class="chart-container">
+                    <canvas id="incomeExpenseChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="expenseBreakdownChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="timeToTargetChart"></canvas>
+                </div>
             </div>
 
             <!-- add transaction form -->
@@ -65,13 +71,6 @@
                 </div>
                 <div class="input-group mb-3">
                     <input type="date" class="form-control" id="transaction-date" required>
-                </div>
-                <div class="input-group mb-3">
-                    <select class="form-select" id="inputGroupSelect01">
-                        <option value="gasto" selected>Gasto</option>
-                        <option value="gastoCo">GastoCo</option>
-                        <option value="ingreso">Ingreso</option>
-                    </select>
                 </div>
                 <div class="input-group mb-3">
                     <span class="input-group-text">Notes</span>
@@ -119,9 +118,7 @@
                 <table id="transactionHistoryVisibilityTable" class="table table-hover">
                     <thead>
                         <tr>
-                            <th scope="col">#</th>
                             <th scope="col">Fecha</th>
-                            <th scope="col">Tipo</th>
                             <th scope="col">Monto</th>
                             <th scope="col">Notas</th>
                             <th scope="col">Actions</th>
@@ -157,6 +154,22 @@
               <label for="target-cash-input" class="form-label">Target Cash Amount</label>
               <input type="number" class="form-control" id="target-cash-input" value="0">
           </div>
+          <hr>
+          <h3>Add Income</h3>
+          <div class="input-group mb-3">
+              <input type="number" id="income-amount-input" class="form-control" placeholder="Amount">
+              <input type="text" id="income-notes-input" class="form-control" placeholder="Notes">
+              <button class="btn btn-outline-secondary" type="button" onclick="addIncome()">Add</button>
+          </div>
+          <hr>
+          <h3>Fixed Monthly Expenses</h3>
+          <div id="fixed-expenses-list" class="mb-3"></div>
+          <div class="input-group mb-3">
+              <input type="text" id="fixed-expense-description-input" class="form-control" placeholder="Expense Description">
+              <input type="number" id="fixed-expense-amount-input" class="form-control" placeholder="Amount">
+              <button class="btn btn-outline-secondary" type="button" onclick="addFixedExpense()">Add</button>
+          </div>
+          <hr>
           <table  class="table">
               <tbody>
                   <tr>
@@ -169,6 +182,48 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="saveSettings()">Guardar y salir</button>
         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal 1 -->
+
+<!-- Edit Transaction Modal -->
+<div class="modal fade" id="editTransactionModal" tabindex="-1" aria-labelledby="editTransactionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editTransactionModalLabel">Edit Transaction</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-transaction-index">
+        <div class="mb-3">
+          <label for="edit-transaction-date" class="form-label">Date</label>
+          <input type="date" class="form-control" id="edit-transaction-date">
+        </div>
+        <div class="mb-3">
+          <label for="edit-transaction-type" class="form-label">Type</label>
+          <div class="btn-group" role="group" aria-label="Edit Transaction type">
+            <input type="radio" class="btn-check" name="editTransactionType" id="edit-gasto" value="gasto" autocomplete="off">
+            <label class="btn btn-outline-primary" for="edit-gasto">Gasto</label>
+
+            <input type="radio" class="btn-check" name="editTransactionType" id="edit-ingreso" value="ingreso" autocomplete="off">
+            <label class="btn btn-outline-primary" for="edit-ingreso">Ingreso</label>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="edit-transaction-amount" class="form-label">Amount</label>
+          <input type="number" class="form-control" id="edit-transaction-amount">
+        </div>
+        <div class="mb-3">
+          <label for="edit-transaction-notes" class="form-label">Notes</label>
+          <input type="text" class="form-control" id="edit-transaction-notes">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="saveEditedTransaction()">Save changes</button>
       </div>
     </div>
   </div>

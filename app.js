@@ -7,7 +7,6 @@ const addTransactionTable = document.getElementById('addTransactionTable');
 const amountInputBox = document.getElementById('amountInputBox');
 const statsVisibilityTable = document.getElementById('statisticsTable')
 const transactionDate = document.getElementById('transaction-date');
-const inputGroupSelect01 = document.getElementById('inputGroupSelect01');
 //const rangeValue = document.getElementById('rangeValue');
 const inputGroupSizingSm = document.getElementById('notesInputBox');
 let transactionsArr = [];
@@ -15,7 +14,8 @@ let settings = {
     currentBalance: 0,
     paycheck1: 0,
     paycheck2: 0,
-    targetCash: 0
+    targetCash: 0,
+    fixedExpenses: []
 };
 //states
 let transactionHistoryTableState = 0;
@@ -36,7 +36,6 @@ console.log(`setting date to ${localFormattedDate}`);
 //set default date
 transactionDate.value = localFormattedDate;
 // based on UTC time.
-console.log('Todo \n1_Prevent empty values or prevent the process on transaction.\n2_Fill tables with transactions.\n3_Develop settings section.\n4_CSV import/export.\n5_Projections logic.')
 function saveDB() {
     const data = {
         transactionsArr: transactionsArr,
@@ -51,12 +50,16 @@ function loadDB() {
     if (storedData) {
         const data = JSON.parse(storedData);
         transactionsArr = data.transactionsArr || [];
-        settings = data.settings || { currentBalance: 0, paycheck1: 0, paycheck2: 0, targetCash: 0 };
+        settings = data.settings || { currentBalance: 0, paycheck1: 0, paycheck2: 0, targetCash: 0, fixedExpenses: [] };
+        if (!settings.fixedExpenses) {
+            settings.fixedExpenses = [];
+        }
         document.getElementById('current-balance-input').value = settings.currentBalance;
         document.getElementById('paycheck1-input').value = settings.paycheck1;
         document.getElementById('paycheck2-input').value = settings.paycheck2;
         document.getElementById('target-cash-input').value = settings.targetCash;
         console.log("DB data loaded from localStorage.");
+        renderFixedExpenses();
         calculateVars(); // Call calculateVars after loading data
     } else {
         console.log("DB  not found in localStorage. Variables remain at default values (0).");
@@ -66,13 +69,14 @@ function loadDB() {
 function clearDB() {
     localStorage.removeItem('DB');
     transactionsArr = [];
-    settings = { currentBalance: 0, paycheck1: 0, paycheck2: 0, targetCash: 0 };
+    settings = { currentBalance: 0, paycheck1: 0, paycheck2: 0, targetCash: 0, fixedExpenses: [] };
     document.getElementById('current-balance-input').value = 0;
     document.getElementById('paycheck1-input').value = 0;
     document.getElementById('paycheck2-input').value = 0;
     document.getElementById('target-cash-input').value = 0;
     console.log("All in-memory variables removed.");
     console.log("Successfully removed 'DB' from localStorage.");
+    renderFixedExpenses();
     calculateVars();
 }
 
@@ -84,6 +88,53 @@ function saveSettings() {
     saveDB();
     calculateVars();
 }
+
+function renderFixedExpenses() {
+    const fixedExpensesList = document.getElementById('fixed-expenses-list');
+    fixedExpensesList.innerHTML = '';
+    if (settings.fixedExpenses.length > 0) {
+        const list = document.createElement('ul');
+        list.className = 'list-group';
+        settings.fixedExpenses.forEach((expense, index) => {
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+            listItem.innerHTML = `
+                <span class="fixed-expense-tag">${expense.description} - ${expense.amount}</span>
+                <button class="btn btn-danger btn-sm" onclick="deleteFixedExpense(${index})">Delete</button>
+            `;
+            list.appendChild(listItem);
+        });
+        fixedExpensesList.appendChild(list);
+    }
+}
+
+function addFixedExpense() {
+    const descriptionInput = document.getElementById('fixed-expense-description-input');
+    const amountInput = document.getElementById('fixed-expense-amount-input');
+    const description = descriptionInput.value;
+    const amount = parseFloat(amountInput.value);
+
+    if (description && amount > 0) {
+        settings.fixedExpenses.push({ description, amount });
+        saveDB();
+        renderFixedExpenses();
+        calculateVars();
+        descriptionInput.value = '';
+        amountInput.value = '';
+    } else {
+        alert('Please enter a valid description and amount.');
+    }
+}
+
+function deleteFixedExpense(index) {
+    if (confirm('Are you sure you want to delete this fixed expense?')) {
+        settings.fixedExpenses.splice(index, 1);
+        saveDB();
+        renderFixedExpenses();
+        calculateVars();
+    }
+}
+
 function logVars() {
     console.log("--- Current Financial Variables ---");
     console.log(transactionsArr)
@@ -138,7 +189,7 @@ function renderStatisticsCharts() {
             const amount = parseFloat(t.amount);
             if (t.type === 'ingreso') {
                 totalIncome += amount;
-            } else if (t.type === 'gasto' || t.type === 'gastoCo') {
+            } else if (t.type === 'gasto') {
                 totalExpenses += amount;
                 const category = t.notes || 'Uncategorized';
                 expenseCategories[category] = (expenseCategories[category] || 0) + amount;
@@ -256,7 +307,7 @@ function saveTransaction() {
   const transaction = {
     amount: amountInputBox.value,
     date: transactionDate.value,
-    type: inputGroupSelect01.value,
+    type: 'gasto',
     //rated: rangeValue.value,
     notes: inputGroupSizingSm.value
   };
@@ -270,6 +321,32 @@ function saveTransaction() {
     calculateVars();
     renderStatisticsCharts();
 }
+
+function addIncome() {
+    const amountInput = document.getElementById('income-amount-input');
+    const notesInput = document.getElementById('income-notes-input');
+    const amount = parseFloat(amountInput.value);
+    const notes = notesInput.value;
+
+    if (amount > 0) {
+        const transaction = {
+            amount: amount,
+            date: localFormattedDate,
+            type: 'ingreso',
+            notes: notes || 'Income'
+        };
+        transactionsArr.push(transaction);
+        saveDB();
+        renderTransactions();
+        calculateVars();
+        renderStatisticsCharts();
+        amountInput.value = '';
+        notesInput.value = '';
+    } else {
+        alert('Please enter a valid amount for income.');
+    }
+}
+
 //import export CSV
 function exportToCsv() {
   const header = Object.keys(transactionsArr[0]).join(',');
@@ -291,38 +368,98 @@ function importFromCsv(csvContent) {
   console.log(transactionsArr);
 }
 //fin import/export
+function getRelativeDateString(date) {
+    const today = new Date();
+    const transactionDate = new Date(date);
+
+    // Reset time part for accurate date comparison
+    today.setHours(0, 0, 0, 0);
+    transactionDate.setHours(0, 0, 0, 0);
+
+    const diffTime = today.getTime() - transactionDate.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+        return "Today";
+    } else if (diffDays === 1) {
+        return "Yesterday";
+    } else if (diffDays <= 7) {
+        return "This Week";
+    } else if (diffDays <= 14) {
+        return "Last Week";
+    } else if (transactionDate.getMonth() === today.getMonth() && transactionDate.getFullYear() === today.getFullYear()) {
+        return "This Month";
+    } else {
+        // Format as "Month Year" for older transactions
+        return transactionDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+    }
+}
+
 function renderTransactions() {
   const tableBody = document.getElementById('transactionHistoryVisibilityTable').getElementsByTagName('tbody')[0];
   tableBody.innerHTML = ''; // Clear existing rows
 
-  transactionsArr.forEach((transaction, index) => {
-    const newRow = tableBody.insertRow();
+  // Sort transactions by date in descending order
+  const sortedTransactions = [...transactionsArr].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    const cell1 = newRow.insertCell(0);
-    const cell2 = newRow.insertCell(1);
-    const cell3 = newRow.insertCell(2);
-    const cell4 = newRow.insertCell(3);
-    const cell5 = newRow.insertCell(4);
-    const cell6 = newRow.insertCell(5);
+  // Group transactions by relative date string
+  const groupedTransactions = sortedTransactions.reduce((groups, transaction) => {
+    const relativeDate = getRelativeDateString(transaction.date);
+    if (!groups[relativeDate]) {
+      groups[relativeDate] = [];
+    }
+    groups[relativeDate].push(transaction);
+    return groups;
+  }, {});
 
-    cell1.innerHTML = index + 1;
-    cell2.innerHTML = transaction.date;
-    cell3.innerHTML = transaction.type;
-    cell4.innerHTML = transaction.amount;
-    cell5.innerHTML = transaction.notes;
+  // Render grouped transactions
+  for (const groupName in groupedTransactions) {
+    // Add a date header row
+    const headerRow = tableBody.insertRow();
+    headerRow.className = 'date-group';
+    const headerCell = headerRow.insertCell(0);
+    headerCell.colSpan = 4; // Span across all columns (reduced from 5 to 4)
+    headerCell.innerHTML = `<span class="date-group-tag">${groupName}</span>`;
 
-    const editButton = document.createElement('span');
-    editButton.textContent = '✏️';
-    editButton.className = 'action-emoji';
-    editButton.onclick = () => editTransaction(index);
-    cell6.appendChild(editButton);
+    // Add transaction rows for the current group
+    groupedTransactions[groupName].forEach(transaction => {
+      const newRow = tableBody.insertRow();
+      newRow.className = 'transaction-row';
 
-    const deleteButton = document.createElement('span');
-    deleteButton.textContent = '🚫';
-    deleteButton.className = 'action-emoji';
-    deleteButton.onclick = () => deleteTransaction(index);
-    cell6.appendChild(deleteButton);
-  });
+      // Add class for color-coding the row
+      if (transaction.type === 'ingreso') {
+        newRow.classList.add('table-success');
+      } else if (transaction.type === 'gasto') {
+        newRow.classList.add('table-danger');
+      }
+
+      const cell1 = newRow.insertCell(0); // Date
+      const cell2 = newRow.insertCell(1); // Amount
+      const cell3 = newRow.insertCell(2); // Notes
+      const cell4 = newRow.insertCell(3); // Actions
+
+      // I need to find the original index to pass to edit/delete functions
+      const originalIndex = transactionsArr.indexOf(transaction);
+
+      cell1.innerHTML = transaction.date.substring(5); // MM-DD format
+      cell2.innerHTML = transaction.amount;
+      cell2.classList.add('amount');
+      // No need for income/expense class here, as the row itself is colored
+      cell3.innerHTML = transaction.notes;
+
+      const editButton = document.createElement('span');
+      editButton.textContent = '✏️';
+      editButton.className = 'action-emoji';
+      editButton.onclick = () => editTransaction(originalIndex);
+      cell4.appendChild(editButton);
+
+      const deleteButton = document.createElement('span');
+      deleteButton.textContent = '🚫';
+      deleteButton.className = 'action-emoji';
+      deleteButton.onclick = () => deleteTransaction(originalIndex);
+      cell4.appendChild(deleteButton);
+    });
+  }
 }
 
 function deleteTransaction(index) {
@@ -336,65 +473,47 @@ function deleteTransaction(index) {
 }
 
 function editTransaction(index) {
-  const tableBody = document.getElementById('transactionHistoryVisibilityTable').getElementsByTagName('tbody')[0];
-  const row = tableBody.rows[index];
   const transaction = transactionsArr[index];
 
-  row.cells[1].innerHTML = `<input type="date" class="form-control" value="${transaction.date}">`;
+  // Populate the modal fields
+  document.getElementById('edit-transaction-index').value = index;
+  document.getElementById('edit-transaction-date').value = transaction.date;
+  document.getElementById('edit-transaction-amount').value = transaction.amount;
+  document.getElementById('edit-transaction-notes').value = transaction.notes;
 
-  const typeCell = row.cells[2];
-  const typeSelect = document.createElement('select');
-  typeSelect.className = 'form-select';
-  const options = ['gasto', 'gastoCo', 'ingreso'];
-  options.forEach(opt => {
-      const option = document.createElement('option');
-      option.value = opt;
-      option.textContent = opt;
-      if (opt === transaction.type) {
-          option.selected = true;
-      }
-      typeSelect.appendChild(option);
-  });
-  typeCell.innerHTML = '';
-  typeCell.appendChild(typeSelect);
+  // Set the correct radio button for type
+  document.querySelector(`input[name="editTransactionType"][value="${transaction.type}"]`).checked = true;
 
-  row.cells[3].innerHTML = `<input type="number" class="form-control" value="${transaction.amount}">`;
-  row.cells[4].innerHTML = `<input type="text" class="form-control" value="${transaction.notes}">`;
-
-  const actionCell = row.cells[5];
-  actionCell.innerHTML = '';
-  const saveButton = document.createElement('button');
-  saveButton.textContent = 'Save';
-  saveButton.className = 'btn btn-success btn-sm';
-  saveButton.onclick = () => saveEditedTransaction(index);
-  actionCell.appendChild(saveButton);
+  // Show the modal
+  const editModal = new bootstrap.Modal(document.getElementById('editTransactionModal'));
+  editModal.show();
 }
 
-function saveEditedTransaction(index) {
-    const tableBody = document.getElementById('transactionHistoryVisibilityTable').getElementsByTagName('tbody')[0];
-    const row = tableBody.rows[index];
-
-    const newDate = row.cells[1].getElementsByTagName('input')[0].value;
-    const newType = row.cells[2].getElementsByTagName('select')[0].value;
-    const newAmount = row.cells[3].getElementsByTagName('input')[0].value;
-    const newNotes = row.cells[4].getElementsByTagName('input')[0].value;
+function saveEditedTransaction() {
+    const index = document.getElementById('edit-transaction-index').value;
+    const newDate = document.getElementById('edit-transaction-date').value;
+    const newType = document.querySelector('input[name="editTransactionType"]:checked').value;
+    const newAmount = document.getElementById('edit-transaction-amount').value;
+    const newNotes = document.getElementById('edit-transaction-notes').value;
 
     if (newAmount === "" || isNaN(newAmount)) {
         window.alert('Invalid amount');
         return;
     }
 
-    transactionsArr[index] = {
-        date: newDate,
-        type: newType,
-        amount: newAmount,
-        notes: newNotes
-    };
+    transactionsArr[index].date = newDate;
+    transactionsArr[index].type = newType;
+    transactionsArr[index].amount = newAmount;
+    transactionsArr[index].notes = newNotes;
 
     saveDB();
     renderTransactions();
     calculateVars();
     renderStatisticsCharts();
+
+    // Hide the modal
+    const editModal = bootstrap.Modal.getInstance(document.getElementById('editTransactionModal'));
+    editModal.hide();
 }
 window.onload = () => {
     setTimeout(() => {
@@ -424,14 +543,15 @@ function calculateVars() {
     let spendToDateThisMonth = 0;
     transactionsArr.forEach(t => {
         const transactionDate = new Date(t.date);
-        if ((t.type === 'gasto' || t.type === 'gastoCo') && transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear) {
+        if (t.type === 'gasto' && transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear) {
             spendToDateThisMonth += parseFloat(t.amount);
         }
     });
 
     const spentPerDay = numberOfDaysPassed > 0 ? spendToDateThisMonth / numberOfDaysPassed : 0;
     const monthlyIncome = settings.paycheck1 + settings.paycheck2;
-    const monthlySpentProjection = spentPerDay * daysInMonth;
+    const totalFixedExpenses = settings.fixedExpenses.reduce((total, expense) => total + expense.amount, 0);
+    const monthlySpentProjection = (spentPerDay * daysInMonth) + totalFixedExpenses;
     const netMonthlyProjection = monthlyIncome - monthlySpentProjection;
 
     let currentBalance = settings.currentBalance;
@@ -439,7 +559,7 @@ function calculateVars() {
         const amount = parseFloat(t.amount);
         if (t.type === 'ingreso') {
             currentBalance += amount;
-        } else if (t.type === 'gasto' || t.type === 'gastoCo') {
+        } else if (t.type === 'gasto') {
             currentBalance -= amount;
         }
     });

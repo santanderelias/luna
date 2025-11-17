@@ -12,11 +12,6 @@ Luna is a simple, client-side web application for tracking personal finances. It
 - **Data Persistence:** All data is saved in the browser's `localStorage`, so your information is preserved between sessions.
 - **Responsive Design:** A clean, mobile-first interface that works on various devices.
 
-## To do
-
-- Import/Export CSV
-- Tweak Settings (set up income date)
-
 ## File Structure
 
 ```

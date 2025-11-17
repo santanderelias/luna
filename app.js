@@ -559,6 +559,42 @@ function calculateVars() {
     }
 }
 
+function showToast(message, type = 'info', options = {}) {
+    const toastContainer = document.querySelector('.toast-container');
+    const toastTemplate = document.getElementById('toast-template');
+
+    const toastEl = toastTemplate.content.cloneNode(true).firstElementChild;
+    const toastBody = toastEl.querySelector('.toast-body');
+
+    toastBody.innerHTML = message; // Use innerHTML to allow for buttons
+
+    // Add color class
+    const colorClasses = {
+        success: 'bg-success text-white',
+        info: 'bg-info text-dark',
+        warning: 'bg-warning text-dark',
+        danger: 'bg-danger text-white',
+    };
+    if (colorClasses[type]) {
+        toastEl.classList.add(...colorClasses[type].split(' '));
+    }
+
+    toastContainer.appendChild(toastEl);
+
+    const toast = new bootstrap.Toast(toastEl, {
+        autohide: options.autohide !== false,
+        delay: options.delay || 5000
+    });
+
+    toast.show();
+
+    toastEl.addEventListener('hidden.bs.toast', () => {
+        toastEl.remove();
+    });
+
+    return toastEl;
+}
+
 window.onload = () => {
     loadDB();
     showPage('add-transaction');

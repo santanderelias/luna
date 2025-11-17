@@ -5,9 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link href="vendor/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="app.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007AFF">
     <title>Luna</title>
 </head>
 <body>
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+    <!-- Toast Template -->
+    <template id="toast-template">
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Luna</strong>
+                <small>Just now</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                Hello, world! This is a toast message.
+            </div>
+        </div>
+    </template>
 
     <div class="app-container">
         <!-- Page: Add Transaction -->
@@ -291,5 +309,47 @@
     <script src="vendor/bootstrap.bundle.min.js"></script>
     <script src="vendor/chart.js"></script>
     <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            let newWorker;
+
+            navigator.serviceWorker.register('/luna/sw.js').then(reg => {
+                // Show a toast if an update is found
+                reg.addEventListener('updatefound', () => {
+                    newWorker = reg.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            const toastMessage = `
+                                New version available!
+                                <button class="btn btn-light btn-sm float-end ms-2" onclick="newWorker.postMessage({ action: 'skipWaiting' })">
+                                    Reload
+                                </button>
+                            `;
+                            showToast(toastMessage, 'info', { autohide: false });
+                        }
+                    });
+                });
+
+                // Show a toast when the app is ready for offline use for the first time
+                if (!localStorage.getItem('pwa_installed')) {
+                    reg.ready.then(() => {
+                         if (navigator.serviceWorker.controller) {
+                            showToast('App is ready for offline use.', 'success');
+                            localStorage.setItem('pwa_installed', 'true');
+                        }
+                    });
+                }
+            });
+
+            // Reload the page after the new service worker has taken control
+            let refreshing;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                showToast('App has been updated!', 'success');
+                window.location.reload();
+                refreshing = true;
+            });
+        }
+    </script>
 </body>
 </html>

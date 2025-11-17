@@ -1,0 +1,22 @@
+{
+  "name": "Luna",
+  "short_name": "Luna",
+  "scope": "/luna/",
+  "start_url": "/luna/index.html",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#007AFF",
+  "description": "A simple personal finance tracker.",
+  "icons": [
+    {
+      "src": "/luna/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/luna/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

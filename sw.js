@@ -1,21 +1,21 @@
 const CACHE_NAME = 'luna-cache-v1';
 const urlsToCache = [
-  '/luna/',
-  '/luna/index.html',
-  '/luna/app.css',
-  '/luna/app.js',
-  '/luna/vendor/bootstrap.min.css',
-  '/luna/vendor/bootstrap.bundle.min.js',
-  '/luna/vendor/chart.js',
-  '/luna/vendor/fonts/inter.woff2',
-  '/luna/res/stats.png',
-  '/luna/res/history.png',
-  '/luna/res/add.png',
-  '/luna/res/vars.png',
-  '/luna/res/settings.png',
-  '/luna/res/icon-192x192.png',
-  '/luna/res/icon-512x512.png',
-  '/luna/favicon.ico'
+  'https://santanderelias.github.io/luna/',
+  'https://santanderelias.github.io/luna/index.html',
+  'https://santanderelias.github.io/luna/app.css',
+  'https://santanderelias.github.io/luna/app.js',
+  'https://santanderelias.github.io/luna/vendor/bootstrap.min.css',
+  'https://santanderelias.github.io/luna/vendor/bootstrap.bundle.min.js',
+  'https://santanderelias.github.io/luna/vendor/chart.js',
+  'https://santanderelias.github.io/luna/vendor/fonts/inter.woff2',
+  'https://santanderelias.github.io/luna/res/stats.png',
+  'https://santanderelias.github.io/luna/res/history.png',
+  'https://santanderelias.github.io/luna/res/add.png',
+  'https://santanderelias.github.io/luna/res/vars.png',
+  'https://santanderelias.github.io/luna/res/settings.png',
+  'https://santanderelias.github.io/luna/res/icon-192x192.png',
+  'https://santanderelias.github.io/luna/res/icon-512x512.png',
+  'https://santanderelias.github.io/luna/favicon.ico'
 ];
 
 self.addEventListener('install', event => {

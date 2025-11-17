@@ -1,20 +1,20 @@
 const CACHE_NAME = 'luna-cache-v1';
 const urlsToCache = [
-  'https://santanderelias.github.io/luna/',
-  'https://santanderelias.github.io/luna/index.html',
-  'https://santanderelias.github.io/luna/app.css',
-  'https://santanderelias.github.io/luna/app.js',
-  'https://santanderelias.github.io/luna/vendor/bootstrap.min.css',
-  'https://santanderelias.github.io/luna/vendor/bootstrap.bundle.min.js',
-  'https://santanderelias.github.io/luna/vendor/chart.js',
-  'https://santanderelias.github.io/luna/vendor/fonts/inter.woff2',
-  'https://santanderelias.github.io/luna/res/stats.png',
-  'https://santanderelias.github.io/luna/res/history.png',
-  'https://santanderelias.github.io/luna/res/add.png',
-  'https://santanderelias.github.io/luna/res/vars.png',
-  'https://santanderelias.github.io/luna/res/settings.png',
-  'https://santanderelias.github.io/luna/res/icon-192x192.png',
-  'https://santanderelias.github.io/luna/res/icon-512x512.png'
+  './',
+  './index.html',
+  './app.css',
+  './app.js',
+  './vendor/bootstrap.min.css',
+  './vendor/bootstrap.bundle.min.js',
+  './vendor/chart.js',
+  './vendor/fonts/inter.woff2',
+  './res/a.png',
+  './res/b.png',
+  './res/c.png',
+  './res/d.png',
+  './res/e.png',
+  './res/icon-192x192.png',
+  './res/icon-512x512.png'
 ];
 
 self.addEventListener('install', event => {
@@ -22,7 +22,7 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Opened cache');
-        return Promise.all(urlsToCache.map(url => cache.add(url)));
+        return Promise.all(urlsToCache.map(url => cache.add(url).catch(err => console.log(`Failed to cache ${url}: ${err}`))));
       })
   );
 });

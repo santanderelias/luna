@@ -4,10 +4,10 @@ const inputGroupSizingSm = document.getElementById('notesInputBox');
 let transactionsArr = [];
 let settings = {
     currentBalance: 0,
-    paycheck1: 0,
-    paycheck2: 0,
     targetCash: 0,
-    fixedExpenses: []
+    fixedExpenses: [],
+    recurringIncomes: [],
+    useThousandsSuffix: false // New setting
 };
 let incomeExpenseChart, expenseBreakdownChart, timeToTargetChart;
 const now = new Date();
@@ -31,65 +31,185 @@ function loadDB() {
     if (storedData) {
         const data = JSON.parse(storedData);
         transactionsArr = data.transactionsArr || [];
-        settings = data.settings || { currentBalance: 0, paycheck1: 0, paycheck2: 0, targetCash: 0, fixedExpenses: [] };
+        settings = data.settings || { currentBalance: 0, targetCash: 0, fixedExpenses: [], recurringIncomes: [], useThousandsSuffix: false };
+
+        // Backward compatibility for old settings
+        if (settings.paycheck1 || settings.paycheck2) {
+            settings.recurringIncomes = [
+                { day: 15, amount: settings.paycheck1 || 0 },
+                { day: 31, amount: settings.paycheck2 || 0 }
+            ].filter(income => income.amount > 0);
+            delete settings.paycheck1;
+            delete settings.paycheck2;
+        }
+        if (!settings.recurringIncomes) {
+            settings.recurringIncomes = [];
+        }
         if (!settings.fixedExpenses) {
             settings.fixedExpenses = [];
         }
+        // Set the toggle state
+        document.getElementById('thousands-suffix-toggle').checked = settings.useThousandsSuffix;
+
         document.getElementById('current-balance-input').value = settings.currentBalance;
-        document.getElementById('paycheck1-input').value = settings.paycheck1;
-        document.getElementById('paycheck2-input').value = settings.paycheck2;
         document.getElementById('target-cash-input').value = settings.targetCash;
         console.log("DB data loaded from localStorage.");
         renderFixedExpenses();
+        renderRecurringIncomes();
         calculateVars();
     } else {
         console.log("DB not found in localStorage. Variables remain at default values (0).");
     }
 }
 
-function showConfirmationModal(message, callback) {
+function showConfirmationModal(message, buttons) {
     const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
     const modalBody = document.getElementById('confirmationModalBody');
-    const confirmBtn = document.getElementById('confirmActionBtn');
+    const modalFooter = document.getElementById('confirmationModalFooter');
 
-    modalBody.textContent = message;
+    modalBody.innerHTML = message; // Use innerHTML to allow for bold/other formatting
+    modalFooter.innerHTML = ''; // Clear existing buttons
 
-    // Clone and replace the button to remove old event listeners
-    const newConfirmBtn = confirmBtn.cloneNode(true);
-    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    // Add cancel button
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'btn btn-secondary';
+    cancelBtn.dataset.bsDismiss = 'modal';
+    cancelBtn.textContent = 'Cancel';
+    modalFooter.appendChild(cancelBtn);
 
-    newConfirmBtn.addEventListener('click', () => {
-        callback();
-        confirmationModal.hide();
+    // Add custom buttons
+    buttons.forEach(btnConfig => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `btn ${btnConfig.class}`;
+        button.textContent = btnConfig.text;
+        button.addEventListener('click', () => {
+            btnConfig.callback();
+            confirmationModal.hide();
+        });
+        modalFooter.appendChild(button);
     });
 
     confirmationModal.show();
 }
 
 function clearDB() {
-    showConfirmationModal('Are you sure you want to reset the app? This will delete all your data.', () => {
-        localStorage.removeItem('DB');
-        transactionsArr = [];
-        settings = { currentBalance: 0, paycheck1: 0, paycheck2: 0, targetCash: 0, fixedExpenses: [] };
-        document.getElementById('current-balance-input').value = 0;
-        document.getElementById('paycheck1-input').value = 0;
-        document.getElementById('paycheck2-input').value = 0;
-        document.getElementById('target-cash-input').value = 0;
-        console.log("All in-memory variables removed.");
-        console.log("Successfully removed 'DB' from localStorage.");
-        renderFixedExpenses();
-        calculateVars();
-    });
+    showConfirmationModal('Are you sure you want to reset the app? This will delete all your data.', [
+        {
+            text: 'Confirm',
+            class: 'btn-danger',
+            callback: () => {
+                localStorage.removeItem('DB');
+                transactionsArr = [];
+                settings = { currentBalance: 0, paycheck1: 0, paycheck2: 0, targetCash: 0, fixedExpenses: [] };
+                document.getElementById('current-balance-input').value = 0;
+                document.getElementById('paycheck1-input').value = 0;
+                document.getElementById('paycheck2-input').value = 0;
+                document.getElementById('target-cash-input').value = 0;
+                console.log("All in-memory variables removed.");
+                console.log("Successfully removed 'DB' from localStorage.");
+                renderFixedExpenses();
+                calculateVars();
+            }
+        }
+    ]);
 }
 
 function saveSettings() {
     settings.currentBalance = parseFloat(document.getElementById('current-balance-input').value);
-    settings.paycheck1 = parseFloat(document.getElementById('paycheck1-input').value);
-    settings.paycheck2 = parseFloat(document.getElementById('paycheck2-input').value);
     settings.targetCash = parseFloat(document.getElementById('target-cash-input').value);
+    settings.useThousandsSuffix = document.getElementById('thousands-suffix-toggle').checked; // Save toggle state
+
+    const recurringIncomeDays = document.querySelectorAll('.recurring-income-day');
+    const recurringIncomeAmounts = document.querySelectorAll('.recurring-income-amount');
+    settings.recurringIncomes = [];
+    for (let i = 0; i < recurringIncomeDays.length; i++) {
+        const day = parseInt(recurringIncomeDays[i].value);
+        const amount = parseFloat(recurringIncomeAmounts[i].value);
+        if (day > 0 && amount > 0) {
+            settings.recurringIncomes.push({ day, amount });
+        }
+    }
+
     saveDB();
     calculateVars();
     showPage('statistics');
+}
+
+function exportToCSV() {
+    const headers = 'date,type,amount,notes';
+    const csvContent = [
+        headers,
+        ...transactionsArr.map(t => `${t.date},${t.type},${t.amount},"${(t.notes || '').replace(/"/g, '""')}"`)
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.href) {
+        URL.revokeObjectURL(link.href);
+    }
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute('download', 'luna_transactions.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('Transactions exported successfully!', 'success');
+}
+
+function importFromCSV(event) {
+    const file = event.target.files[0];
+    if (!file) {
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const contents = e.target.result;
+        const lines = contents.split('\n').slice(1); // Skip header
+        const importedTransactions = lines.map(line => {
+            const parts = line.split(',');
+            if (parts.length < 4) return null;
+            const [date, type, amount, ...notesParts] = parts;
+            const notes = notesParts.join(',').replace(/"/g, '');
+            return { date, type, amount: parseFloat(amount), notes };
+        }).filter(t => t && t.date && t.type && !isNaN(t.amount));
+
+        if (importedTransactions.length === 0) {
+            showToast('No valid transactions found in the file.', 'warning');
+            return;
+        }
+
+        showConfirmationModal(`Found ${importedTransactions.length} transactions. Do you want to replace existing transactions or merge with them?`, [
+            {
+                text: 'Replace',
+                class: 'btn-danger',
+                callback: () => {
+                    transactionsArr = importedTransactions;
+                    saveDB();
+                    renderTransactions();
+                    calculateVars();
+                    renderStatisticsCharts();
+                    showToast(`${importedTransactions.length} transactions imported (Replaced).`, 'success');
+                }
+            },
+            {
+                text: 'Merge',
+                class: 'btn-primary',
+                callback: () => {
+                    transactionsArr.push(...importedTransactions);
+                    saveDB();
+                    renderTransactions();
+                    calculateVars();
+                    renderStatisticsCharts();
+                    showToast(`${importedTransactions.length} transactions imported (Merged).`, 'success');
+                }
+            }
+        ]);
+    };
+    reader.readAsText(file);
+    event.target.value = ''; // Reset file input
 }
 
 function renderFixedExpenses() {
@@ -103,12 +223,46 @@ function renderFixedExpenses() {
             listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
             listItem.innerHTML = `
                 <span class="fixed-expense-tag">${expense.description} - ${expense.amount}</span>
-                <button class="btn btn-danger btn-sm" onclick="deleteFixedExpense(${index})">Delete</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteFixedExpense(${index})">🚫</button>
             `;
             list.appendChild(listItem);
         });
         fixedExpensesList.appendChild(list);
     }
+}
+
+function renderRecurringIncomes() {
+    const recurringIncomesList = document.getElementById('recurring-incomes-list');
+    recurringIncomesList.innerHTML = '';
+    if (settings.recurringIncomes.length > 0) {
+        const list = document.createElement('ul');
+        list.className = 'list-group mb-3';
+        settings.recurringIncomes.forEach((income, index) => {
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item';
+            listItem.innerHTML = `
+                <div class="input-group">
+                    <span class="input-group-text">🗓️</span>
+                    <input type="number" class="form-control recurring-income-day" placeholder="Day" value="${income.day}" min="1" max="31">
+                    <span class="input-group-text">💰</span>
+                    <input type="number" class="form-control recurring-income-amount" placeholder="Amount" value="${income.amount}">
+                    <button class="btn btn-danger" onclick="deleteRecurringIncome(${index})">🚫</button>
+                </div>
+            `;
+            list.appendChild(listItem);
+        });
+        recurringIncomesList.appendChild(list);
+    }
+}
+
+function addRecurringIncome() {
+    settings.recurringIncomes.push({ day: 1, amount: 0 });
+    renderRecurringIncomes();
+}
+
+function deleteRecurringIncome(index) {
+    settings.recurringIncomes.splice(index, 1);
+    renderRecurringIncomes();
 }
 
 function addFixedExpense() {
@@ -130,12 +284,18 @@ function addFixedExpense() {
 }
 
 function deleteFixedExpense(index) {
-    showConfirmationModal('Are you sure you want to delete this fixed expense?', () => {
-        settings.fixedExpenses.splice(index, 1);
-        saveDB();
-        renderFixedExpenses();
-        calculateVars();
-    });
+    showConfirmationModal('Are you sure you want to delete this fixed expense?', [
+        {
+            text: 'Delete',
+            class: 'btn-danger',
+            callback: () => {
+                settings.fixedExpenses.splice(index, 1);
+                saveDB();
+                renderFixedExpenses();
+                calculateVars();
+            }
+        }
+    ]);
 }
 
 function showPage(pageName) {
@@ -180,8 +340,10 @@ function renderStatisticsCharts() {
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
 
+    const monthlyRecurringIncome = settings.recurringIncomes.reduce((total, income) => total + income.amount, 0);
+
     const incomeExpenseCtx = document.getElementById('incomeExpenseChart').getContext('2d');
-    let totalIncome = 0;
+    let totalManualIncome = 0;
     let totalExpenses = 0;
     const expenseCategories = {};
 
@@ -190,7 +352,7 @@ function renderStatisticsCharts() {
         if (transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear) {
             const amount = parseFloat(t.amount);
             if (t.type === 'ingreso') {
-                totalIncome += amount;
+                totalManualIncome += amount;
             } else if (t.type === 'gasto') {
                 totalExpenses += amount;
                 const category = t.notes || 'Uncategorized';
@@ -198,6 +360,8 @@ function renderStatisticsCharts() {
             }
         }
     });
+
+    const totalIncome = monthlyRecurringIncome + totalManualIncome;
 
     incomeExpenseChart = new Chart(incomeExpenseCtx, {
         type: 'bar',
@@ -237,6 +401,26 @@ function renderStatisticsCharts() {
             }]
         }
     });
+
+    // Render expense breakdown list
+    const expenseBreakdownListDiv = document.getElementById('expense-breakdown-list');
+    expenseBreakdownListDiv.innerHTML = ''; // Clear previous list
+
+    if (categoryLabels.length > 0) {
+        categoryLabels.forEach((label, index) => {
+            const card = document.createElement('div');
+            card.className = 'card mb-1'; // mb-1 for small margin between cards
+            card.innerHTML = `
+                <div class="card-body p-2">
+                    <h6 class="card-title mb-0" style="font-size: 0.8rem;">${label}</h6>
+                    <p class="card-text mb-0" style="font-size: 0.9rem; font-weight: bold;">$${formatNumber(categoryData[index])}</p>
+                </div>
+            `;
+            expenseBreakdownListDiv.appendChild(card);
+        });
+    } else {
+        expenseBreakdownListDiv.innerHTML = '<p class="text-muted text-center mt-3">No expenses this month.</p>';
+    }
 
     const timeToTargetCtx = document.getElementById('timeToTargetChart').getContext('2d');
     const netMonthlyProjectionText = document.getElementById('netMonthlyProjection').textContent;
@@ -406,7 +590,7 @@ function renderTransactions() {
       const originalIndex = transactionsArr.indexOf(transaction);
 
       cell1.innerHTML = transaction.date.substring(5);
-      cell2.innerHTML = transaction.amount;
+      cell2.innerHTML = formatNumber(transaction.amount);
       cell2.classList.add('amount');
       cell3.innerHTML = transaction.notes;
 
@@ -426,13 +610,19 @@ function renderTransactions() {
 }
 
 function deleteTransaction(index) {
-    showConfirmationModal('Are you sure you want to delete this transaction?', () => {
-        transactionsArr.splice(index, 1);
-        saveDB();
-        renderTransactions();
-        calculateVars();
-        renderStatisticsCharts();
-    });
+    showConfirmationModal('Are you sure you want to delete this transaction?', [
+        {
+            text: 'Delete',
+            class: 'btn-danger',
+            callback: () => {
+                transactionsArr.splice(index, 1);
+                saveDB();
+                renderTransactions();
+                calculateVars();
+                renderStatisticsCharts();
+            }
+        }
+    ]);
 }
 
 function editTransaction(index) {
@@ -475,6 +665,13 @@ function saveEditedTransaction() {
     editModal.hide();
 }
 
+function formatNumber(num) {
+    if (settings.useThousandsSuffix && Math.abs(num) >= 10000) {
+        return Math.trunc(num / 1000) + 'k';
+    }
+    return Math.trunc(num).toString();
+}
+
 function calculateVars() {
     const projectionDatePicker = document.getElementById('projection-date-picker');
     const projectionDate = projectionDatePicker.valueAsDate ? new Date(projectionDatePicker.valueAsDate.getTime() + projectionDatePicker.valueAsDate.getTimezoneOffset() * 60000) : null;
@@ -496,7 +693,7 @@ function calculateVars() {
     });
 
     const spentPerDay = numberOfDaysPassed > 0 ? spendToDateThisMonth / numberOfDaysPassed : 0;
-    const monthlyIncome = settings.paycheck1 + settings.paycheck2;
+    const monthlyIncome = settings.recurringIncomes.reduce((total, income) => total + income.amount, 0);
     const totalFixedExpenses = settings.fixedExpenses.reduce((total, expense) => total + expense.amount, 0);
     const monthlySpentProjection = (spentPerDay * daysInMonth) + totalFixedExpenses;
     const netMonthlyProjection = monthlyIncome - monthlySpentProjection;
@@ -511,11 +708,11 @@ function calculateVars() {
         }
     });
 
-    document.getElementById('currentBalance').textContent = Math.trunc(currentBalance);
-    document.getElementById('spendToDateThisMonth').textContent = Math.trunc(-spendToDateThisMonth);
-    document.getElementById('spentPerDay').textContent = Math.trunc(-spentPerDay);
-    document.getElementById('monthlySpentProjection').textContent = Math.trunc(-monthlySpentProjection);
-    document.getElementById('netMonthlyProjection').textContent = Math.trunc(netMonthlyProjection);
+    document.getElementById('currentBalance').textContent = formatNumber(currentBalance);
+    document.getElementById('spendToDateThisMonth').textContent = formatNumber(-spendToDateThisMonth);
+    document.getElementById('spentPerDay').textContent = formatNumber(-spentPerDay);
+    document.getElementById('monthlySpentProjection').textContent = formatNumber(-monthlySpentProjection);
+    document.getElementById('netMonthlyProjection').textContent = formatNumber(netMonthlyProjection);
 
     if (projectionDate && projectionDate >= today) {
         const daysToProjection = Math.ceil((projectionDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
@@ -527,28 +724,30 @@ function calculateVars() {
             const dayOfMonth = tempDate.getDate();
             const lastDayOfMonth = new Date(tempDate.getFullYear(), tempDate.getMonth() + 1, 0).getDate();
 
-            if (dayOfMonth === 15 && settings.paycheck1 > 0) {
-                projectedIncomeToDateX += settings.paycheck1;
-                paycheckCount++;
-            }
-            if (dayOfMonth === lastDayOfMonth && settings.paycheck2 > 0) {
-                projectedIncomeToDateX += settings.paycheck2;
-                paycheckCount++;
-            }
+            settings.recurringIncomes.forEach(income => {
+                let incomeDay = income.day;
+                if (incomeDay > lastDayOfMonth) {
+                    incomeDay = lastDayOfMonth;
+                }
+                if (dayOfMonth === incomeDay) {
+                    projectedIncomeToDateX += income.amount;
+                    paycheckCount++;
+                }
+            });
             tempDate.setDate(tempDate.getDate() + 1);
         }
 
         const predictedCashBalanceToDateX = currentBalance - spendingToDateX + projectedIncomeToDateX;
 
-        document.getElementById('spendingToDateX').textContent = Math.trunc(-spendingToDateX);
+        document.getElementById('spendingToDateX').textContent = formatNumber(-spendingToDateX);
         document.getElementById('paychecksToDateX').textContent = `${paycheckCount} paycheck(s)`;
-        document.getElementById('projectedIncomeToDateX').textContent = Math.trunc(projectedIncomeToDateX);
-        document.getElementById('predictedCashBalanceToDateX').textContent = Math.trunc(predictedCashBalanceToDateX);
+        document.getElementById('projectedIncomeToDateX').textContent = formatNumber(projectedIncomeToDateX);
+        document.getElementById('predictedCashBalanceToDateX').textContent = formatNumber(predictedCashBalanceToDateX);
     } else {
-        document.getElementById('spendingToDateX').textContent = "0";
+        document.getElementById('spendingToDateX').textContent = formatNumber(0);
         document.getElementById('paychecksToDateX').textContent = "0";
-        document.getElementById('projectedIncomeToDateX').textContent = "0";
-        document.getElementById('predictedCashBalanceToDateX').textContent = "0";
+        document.getElementById('projectedIncomeToDateX').textContent = formatNumber(0);
+        document.getElementById('predictedCashBalanceToDateX').textContent = formatNumber(0);
     }
 
     if (settings.targetCash > 0 && netMonthlyProjection > 0) {
@@ -608,4 +807,6 @@ window.onload = () => {
     });
 
     document.getElementById('projection-date-picker').addEventListener('change', calculateVars);
+    document.getElementById('export-csv-btn').addEventListener('click', exportToCSV);
+    document.getElementById('import-csv-input').addEventListener('change', importFromCSV);
 };

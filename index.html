@@ -45,7 +45,7 @@
                     <span class="input-group-text">Notes</span>
                     <input id="notesInputBox" type="text" class="form-control" placeholder="Transaction notes">
                 </div>
-                <button id="saveTransaction" class="btn btn-success w-100" onclick="saveTransaction()">Save!</button>
+                <button id="saveTransaction" class="btn btn-success" onclick="saveTransaction()">Save</button>
             </div>
         </div>
 
@@ -56,13 +56,22 @@
             </div>
             <div class="page-content">
                 <div class="chart-container">
-                    <canvas id="incomeExpenseChart"></canvas>
-                </div>
-                <div class="chart-container">
-                    <canvas id="expenseBreakdownChart"></canvas>
-                </div>
-                <div class="chart-container">
                     <canvas id="timeToTargetChart"></canvas>
+                </div>
+                <div class="chart-container small-chart-container">
+                    <div class="row">
+                        <div class="col-8">
+                            <canvas id="expenseBreakdownChart"></canvas>
+                        </div>
+                        <div class="col-4">
+                            <div id="expense-breakdown-list">
+                                <!-- List items will be rendered here by app.js -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="incomeExpenseChart"></canvas>
                 </div>
             </div>
         </div>
@@ -76,9 +85,9 @@
                 <table id="transactionHistoryVisibilityTable" class="table table-hover">
                     <thead>
                         <tr>
-                            <th scope="col">Fecha</th>
-                            <th scope="col">Monto</th>
-                            <th scope="col">Notas</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Notes</th>
                             <th scope="col">Actions</th>
                         </tr>
                     </thead>
@@ -155,6 +164,10 @@
                                         <input type="number" class="form-control" id="target-cash-input" value="0">
                                     </div>
                                 </div>
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="thousands-suffix-toggle">
+                                    <label class="form-check-label" for="thousands-suffix-toggle">Use 'k' for thousands (e.g., 100k)</label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -166,20 +179,8 @@
                         </h2>
                         <div id="collapseRecurringIncome" class="accordion-collapse collapse" aria-labelledby="headingRecurringIncome" data-bs-parent="#settingsAccordion">
                             <div class="accordion-body">
-                                <div class="mb-3">
-                                    <label for="paycheck1-input" class="form-label">Paycheck on the 15th</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" class="form-control" id="paycheck1-input" value="0">
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="paycheck2-input" class="form-label">Paycheck on End of Month</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" class="form-control" id="paycheck2-input" value="0">
-                                    </div>
-                                </div>
+                                <div id="recurring-incomes-list" class="mb-3"></div>
+                                <button class="btn btn-outline-primary" type="button" onclick="addRecurringIncome()">Add Income</button>
                             </div>
                         </div>
                     </div>
@@ -194,7 +195,7 @@
                                 <div class="input-group">
                                     <input type="number" id="income-amount-input" class="form-control" placeholder="Amount">
                                     <input type="text" id="income-notes-input" class="form-control" placeholder="Notes">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="addIncome()">Add</button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="addIncome()">➕</button>
                                 </div>
                             </div>
                         </div>
@@ -211,14 +212,30 @@
                                 <div class="input-group">
                                     <input type="text" id="fixed-expense-description-input" class="form-control" placeholder="Expense Description">
                                     <input type="number" id="fixed-expense-amount-input" class="form-control" placeholder="Amount">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="addFixedExpense()">Add</button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="addFixedExpense()">➕</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingDataManagement">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDataManagement" aria-expanded="false" aria-controls="collapseDataManagement">
+                                Data Management
+                            </button>
+                        </h2>
+                        <div id="collapseDataManagement" class="accordion-collapse collapse" aria-labelledby="headingDataManagement" data-bs-parent="#settingsAccordion">
+                            <div class="accordion-body">
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-primary" type="button" id="export-csv-btn">Export to CSV</button>
+                                    <label for="import-csv-input" class="btn btn-outline-primary">Import from CSV</label>
+                                    <input type="file" id="import-csv-input" accept=".csv" style="display: none;">
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <button type="button" class="btn btn-primary w-100 mt-3" onclick="saveSettings()">Save Settings</button>
+                <button type="button" class="btn btn-primary mt-3" onclick="saveSettings()">Save Settings</button>
             </div>
         </div>
     </div>
@@ -298,9 +315,8 @@
           <div class="modal-body" id="confirmationModalBody">
             Are you sure you want to perform this action?
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-danger" id="confirmActionBtn">Confirm</button>
+          <div class="modal-footer" id="confirmationModalFooter">
+            <!-- Buttons will be dynamically inserted here -->
           </div>
         </div>
       </div>

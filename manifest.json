@@ -9,12 +9,12 @@
   "description": "A simple personal finance tracker.",
   "icons": [
     {
-      "src": "/luna/icon-192x192.png",
+      "src": "/luna/res/icon-192x192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/luna/icon-512x512.png",
+      "src": "/luna/res/icon-512x512.png",
       "type": "image/png",
       "sizes": "512x512"
     }

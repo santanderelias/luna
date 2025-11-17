@@ -13,8 +13,8 @@ const urlsToCache = [
   '/luna/res/add.png',
   '/luna/res/vars.png',
   '/luna/res/settings.png',
-  '/luna/icon-192x192.png',
-  '/luna/icon-512x512.png',
+  '/luna/res/icon-192x192.png',
+  '/luna/res/icon-512x512.png',
   '/luna/favicon.ico'
 ];
 

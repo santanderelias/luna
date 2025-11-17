@@ -62,9 +62,9 @@ html, body {
 }
 
 .page-header {
-    padding: 1rem 0;
+    padding: 0.5rem 0;
     border-bottom: 1px solid var(--border-color);
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 }
 
 .page-header h1 {
@@ -200,7 +200,7 @@ html, body {
 }
 
 #transactionHistoryVisibilityTable .date-group td {
-    text-align: left;
+    text-align: center;
     padding-left: 0.5rem;
 }
 
@@ -221,4 +221,19 @@ html, body {
 
 .modal-footer {
     border-top: none;
+}
+
+/* Custom Accordion Styles */
+.accordion-button:focus {
+  box-shadow: none;
+}
+
+.accordion-button:not(.collapsed) {
+  color: var(--bs-body-color);
+  background-color: transparent;
+}
+
+/* Chart Container Styles */
+.small-chart-container {
+    max-height: 250px;
 }

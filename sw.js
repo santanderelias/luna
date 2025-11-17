@@ -14,8 +14,7 @@ const urlsToCache = [
   'https://santanderelias.github.io/luna/res/vars.png',
   'https://santanderelias.github.io/luna/res/settings.png',
   'https://santanderelias.github.io/luna/res/icon-192x192.png',
-  'https://santanderelias.github.io/luna/res/icon-512x512.png',
-  'https://santanderelias.github.io/luna/favicon.ico'
+  'https://santanderelias.github.io/luna/res/icon-512x512.png'
 ];
 
 self.addEventListener('install', event => {

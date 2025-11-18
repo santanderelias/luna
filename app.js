@@ -1139,6 +1139,9 @@ function renderRecurringIncomes() {
             `;
             list.appendChild(listItem);
         });
+        recurringInodesList.appendChild(list);
+    }
+}
 function deleteRecurringIncome(index) {
     settings.recurringIncomes.splice(index, 1);
     saveDB(); // Save after deleting

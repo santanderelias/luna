@@ -41,9 +41,15 @@
                 <div class="input-group mb-3">
                     <input type="date" class="form-control" id="transaction-date" required>
                 </div>
-                <div class="input-group mb-3">
-                    <span class="input-group-text">Notes</span>
-                    <input id="notesInputBox" type="text" class="form-control" placeholder="Transaction notes">
+                <div id="selectorS" class="input-group input-group-sm mb-3">
+                    <select class="form-select" id="notesSelectBox" onchange="handleNotesChange()">
+                        <!-- Options will be dynamically loaded here -->
+                    </select>
+                    <div id="manualNotesInputGroup" class="input-group" style="display: none;">
+                        <span class="input-group-text">Notes</span>
+                        <input id="notesManualInputBox" type="text" class="form-control" placeholder="Enter new category">
+                        <button class="btn btn-outline-secondary" type="button" onclick="volverToSelect()">Go Back</button>
+                    </div>
                 </div>
                 <button id="saveTransaction" class="btn btn-success" onclick="saveTransaction()">Save</button>
             </div>
@@ -150,22 +156,51 @@
                         </h2>
                         <div id="collapseGeneral" class="accordion-collapse collapse show" aria-labelledby="headingGeneral" data-bs-parent="#settingsAccordion">
                             <div class="accordion-body">
-                                <div class="mb-3">
-                                    <label for="current-balance-input" class="form-label">Current Balance</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" class="form-control" id="current-balance-input" value="0">
+                                <!-- Current Balance Row -->
+                                <div class="mb-2">
+                                    <div id="currentBalanceDisplayGroup" class="d-flex justify-content-between align-items-center">
+                                        <span class="text-muted">Current Balance:</span>
+                                        <div class="d-flex align-items-center">
+                                            <span id="displayCurrentBalance" class="fw-bold me-2">$0</span>
+                                            <span class="action-emoji" onclick="toggleGeneralSettingEditMode('currentBalance', true)">✏️</span>
+                                        </div>
+                                    </div>
+                                    <div id="currentBalanceEditGroup" class="mt-2" style="display: none;">
+                                        <div class="input-group input-group-sm mb-2">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="editCurrentBalanceInput">
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <span class="action-emoji me-2" onclick="saveGeneralSetting('currentBalance')">💾</span>
+                                            <span class="action-emoji" onclick="toggleGeneralSettingEditMode('currentBalance', false)">❌</span>
+                                        </div>
                                     </div>
                                 </div>
+
+                                <!-- Target Cash Amount Row -->
                                 <div class="mb-3">
-                                    <label for="target-cash-input" class="form-label">Target Cash Amount</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" class="form-control" id="target-cash-input" value="0">
+                                    <div id="targetCashDisplayGroup" class="d-flex justify-content-between align-items-center">
+                                        <span class="text-muted">Target Cash Amount:</span>
+                                        <div class="d-flex align-items-center">
+                                            <span id="displayTargetCash" class="fw-bold me-2">$0</span>
+                                            <span class="action-emoji" onclick="toggleGeneralSettingEditMode('targetCash', true)">✏️</span>
+                                        </div>
+                                    </div>
+                                    <div id="targetCashEditGroup" class="mt-2" style="display: none;">
+                                        <div class="input-group input-group-sm mb-2">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="editTargetCashInput">
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <span class="action-emoji me-2" onclick="saveGeneralSetting('targetCash')">💾</span>
+                                            <span class="action-emoji" onclick="toggleGeneralSettingEditMode('targetCash', false)">❌</span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="mb-3 form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="thousands-suffix-toggle">
+
+                                <!-- Thousands Suffix Toggle (remains as is, saves independently) -->
+                                <div class="mb-3 form-check form-switch mt-3">
+                                    <input class="form-check-input" type="checkbox" id="thousands-suffix-toggle" onchange="handleThousandsSuffixToggle()">
                                     <label class="form-check-label" for="thousands-suffix-toggle">Use 'k' for thousands (e.g., 100k)</label>
                                 </div>
                             </div>
@@ -180,7 +215,6 @@
                         <div id="collapseRecurringIncome" class="accordion-collapse collapse" aria-labelledby="headingRecurringIncome" data-bs-parent="#settingsAccordion">
                             <div class="accordion-body">
                                 <div id="recurring-incomes-list" class="mb-3"></div>
-                                <button class="btn btn-outline-primary" type="button" onclick="addRecurringIncome()">Add Income</button>
                             </div>
                         </div>
                     </div>
@@ -195,7 +229,7 @@
                                 <div class="input-group">
                                     <input type="number" id="income-amount-input" class="form-control" placeholder="Amount">
                                     <input type="text" id="income-notes-input" class="form-control" placeholder="Notes">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="addIncome()">➕</button>
+                                    <span class="action-emoji" onclick="addIncome()">➕</span>
                                 </div>
                             </div>
                         </div>
@@ -212,7 +246,7 @@
                                 <div class="input-group">
                                     <input type="text" id="fixed-expense-description-input" class="form-control" placeholder="Expense Description">
                                     <input type="number" id="fixed-expense-amount-input" class="form-control" placeholder="Amount">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="addFixedExpense()">➕</button>
+                                    <span class="action-emoji" onclick="addFixedExpense()">➕</span>
                                 </div>
                             </div>
                         </div>
@@ -234,8 +268,6 @@
                         </div>
                     </div>
                 </div>
-
-                <button type="button" class="btn btn-primary mt-3" onclick="saveSettings()">Save Settings</button>
             </div>
         </div>
     </div>

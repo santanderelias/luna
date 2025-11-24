@@ -1,62 +1,48 @@
-const CACHE_NAME = 'luna-cache-v1';
-const urlsToCache = [
-  './',
-  './index.html',
-  './app.css',
-  './app.js',
-  './vendor/bootstrap.min.css',
-  './vendor/bootstrap.bundle.min.js',
-  './vendor/chart.js',
-  './vendor/fonts/inter.woff2',
-  './res/a.png',
-  './res/b.png',
-  './res/c.png',
-  './res/d.png',
-  './res/e.png',
-  './res/icon-192x192.png',
-  './res/icon-512x512.png'
+const CACHE_NAME = 'luna-v2-cache-v2';
+const ASSETS_TO_CACHE = [
+    'https://santanderelias.github.io/luna/',
+    'https://santanderelias.github.io/luna/index.html',
+    'https://santanderelias.github.io/luna/css/style.css',
+    'https://santanderelias.github.io/luna/js/app.js',
+    'https://santanderelias.github.io/luna/js/ui.js',
+    'https://santanderelias.github.io/luna/js/storage.js',
+    'https://santanderelias.github.io/luna/js/charts.js',
+    'https://santanderelias.github.io/luna/js/calculator.js',
+    'https://santanderelias.github.io/luna/manifest.json',
+    'https://santanderelias.github.io/luna/vendor/css/bootstrap.min.css',
+    'https://santanderelias.github.io/luna/vendor/css/bootstrap-icons.css',
+    'https://santanderelias.github.io/luna/vendor/js/bootstrap.bundle.min.js',
+    'https://santanderelias.github.io/luna/vendor/js/chart.js',
+    'https://santanderelias.github.io/luna/vendor/fonts/bootstrap-icons.woff2',
+    'https://santanderelias.github.io/luna/vendor/fonts/bootstrap-icons.woff'
 ];
 
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        return Promise.all(urlsToCache.map(url => cache.add(url).catch(err => console.log(`Failed to cache ${url}: ${err}`))));
-      })
-  );
+self.addEventListener('install', (event) => {
+    self.skipWaiting(); // Force waiting service worker to become active
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then((cache) => cache.addAll(ASSETS_TO_CACHE))
+    );
 });
 
-self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('Deleting old cache:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        }).then(() => self.clients.claim()) // Take control of all clients immediately
+    );
 });
 
-self.addEventListener('message', event => {
-  if (event.data && event.data.action === 'skipWaiting') {
-    self.skipWaiting();
-  }
-});
-
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      }
-    )
-  );
+self.addEventListener('fetch', (event) => {
+    event.respondWith(
+        caches.match(event.request)
+            .then((response) => response || fetch(event.request))
+    );
 });

@@ -1,410 +1,439 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <link href="vendor/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="app.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luna v2</title>
+    <link href="vendor/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+    <link rel="stylesheet" href="vendor/css/bootstrap-icons.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#007AFF">
-    <title>Luna</title>
 </head>
+
 <body>
-    <!-- Toast Container -->
-    <div class="toast-container position-fixed top-0 end-0 p-3"></div>
+    <!-- Top Header Removed -->
 
-    <!-- Toast Template -->
-    <template id="toast-template">
-        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
-                <strong class="me-auto">Luna</strong>
-                <small>Just now</small>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-                Hello, world! This is a toast message.
-            </div>
-        </div>
-    </template>
-
-    <div class="app-container">
-        <!-- Page: Add Transaction -->
-        <div id="page-add-transaction" class="page">
-            <div class="page-header">
-                <h1>Add Transaction</h1>
-            </div>
-            <div class="page-content">
-                <div class="input-group mb-3">
-                    <span class="input-group-text">$</span>
-                    <input id="amountInputBox" type="number" class="form-control" placeholder="Amount" required>
-                </div>
-                <div class="input-group mb-3">
-                    <input type="date" class="form-control" id="transaction-date" required>
-                </div>
-                <div id="selectorS" class="input-group input-group-sm mb-3">
-                    <select class="form-select" id="notesSelectBox" onchange="handleNotesChange()">
-                        <!-- Options will be dynamically loaded here -->
-                    </select>
-                    <div id="manualNotesInputGroup" class="input-group" style="display: none;">
-                        <span class="input-group-text">Notes</span>
-                        <input id="notesManualInputBox" type="text" class="form-control" placeholder="Enter new category">
-                        <button class="btn btn-outline-secondary" type="button" onclick="volverToSelect()">Go Back</button>
+    <div id="content-area" class="container mt-4 pb-5 mb-5">
+        <!-- Home Tab Content (Balance + History) -->
+        <div id="tab-home" class="tab-content fade-in">
+            <section id="balance" class="mb-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Current Balance</h5>
+                        <p class="card-text fs-2" id="current-balance-display">$0.00</p>
                     </div>
                 </div>
-                <button id="saveTransaction" class="btn btn-success" onclick="saveTransaction()">Save</button>
-            </div>
+            </section>
+
+            <section id="history">
+                <h5 class="mb-3">History</h5>
+
+                <!-- Search and Filter -->
+                <div class="row g-2 mb-3">
+                    <div class="col-8">
+                        <input type="text" class="form-control" id="search-input" placeholder="Search...">
+                    </div>
+                    <div class="col-4">
+                        <select class="form-select" id="filter-category">
+                            <option value="all">All</option>
+                            <!-- Categories will be populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <ul class="list-group">
+                    <!-- Transactions will be dynamically added here -->
+                </ul>
+            </section>
         </div>
 
-        <!-- Page: Statistics -->
-        <div id="page-statistics" class="page">
-            <div class="page-header">
-                <h1>Statistics</h1>
-            </div>
-            <div class="page-content">
-                <div class="chart-container">
-                    <canvas id="timeToTargetChart"></canvas>
-                </div>
-                <div class="chart-container small-chart-container">
-                    <div class="row">
-                        <div class="col-8">
-                            <canvas id="expenseBreakdownChart"></canvas>
-                        </div>
-                        <div class="col-4">
-                            <div id="expense-breakdown-list">
-                                <!-- List items will be rendered here by app.js -->
+        <!-- Statistics Tab Content -->
+        <div id="tab-stats" class="tab-content d-none fade-in">
+            <section id="statistics" class="mb-4">
+                <!-- Filters Card -->
+                <div class="card mb-3">
+                    <div class="card-body py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 text-muted">Filters</h6>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" id="includeFixedExpenses" checked>
+                                    <label class="form-check-label small" for="includeFixedExpenses"
+                                        style="font-size: 0.75rem;">Fixed Exp.</label>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-filter" type="button" id="timeRangeDropdown"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        📅
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="timeRangeDropdown">
+                                        <li><a class="dropdown-item active" href="#" data-range="this-month">This
+                                                Month</a></li>
+                                        <li><a class="dropdown-item" href="#" data-range="last-month">Last Month</a>
+                                        </li>
+                                        <li><a class="dropdown-item" href="#" data-range="all-time">All Time</a></li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="chart-container">
-                    <canvas id="incomeExpenseChart"></canvas>
-                </div>
-            </div>
-        </div>
 
-        <!-- Page: Transaction History -->
-        <div id="page-history" class="page">
-            <div class="page-header">
-                <h1>History</h1>
-            </div>
-            <div class="page-content">
-                <table id="transactionHistoryVisibilityTable" class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th scope="col">Date</th>
-                            <th scope="col">Amount</th>
-                            <th scope="col">Notes</th>
-                            <th scope="col">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Page: Vars -->
-        <div id="page-vars" class="page">
-            <div class="page-header">
-                <h1>Variables</h1>
-            </div>
-            <div class="page-content">
-                <h3>Current Data</h3>
-                <table class="table table-hover">
-                    <tbody>
-                        <tr><td>Current Balance</td><td id="currentBalance">0</td></tr>
-                        <tr><td>Spend to Date This Month</td><td id="spendToDateThisMonth">0</td></tr>
-                        <tr><td>Spent Per Day</td><td id="spentPerDay">0</td></tr>
-                    </tbody>
-                </table>
-                <h3>Projections</h3>
-                <table class="table table-hover">
-                    <tbody>
-                        <tr><td>Monthly Spent Projection</td><td id="monthlySpentProjection">0</td></tr>
-                        <tr><td>Net Monthly Projection</td><td id="netMonthlyProjection">0</td></tr>
-                    </tbody>
-                </table>
-                <h3>Set Projections</h3>
-                <div class="mb-3">
-                    <label for="projection-date-picker" class="form-label">Projection Target Date</label>
-                    <input type="date" class="form-control" id="projection-date-picker">
-                </div>
-                <table class="table table-hover">
-                    <tbody>
-                        <tr><td>Spending to Date X</td><td id="spendingToDateX">0</td></tr>
-                        <tr><td>Paychecks to Date X</td><td id="paychecksToDateX">0</td></tr>
-                        <tr><td>Projected Income to Date X</td><td id="projectedIncomeToDateX">0</td></tr>
-                        <tr><td>Predicted Cash Balance to Date X</td><td id="predictedCashBalanceToDateX">0</td></tr>
-                        <tr><td>Time to Reach Target</td><td id="timeToReachTarget">N/A</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Page: Settings -->
-        <div id="page-settings" class="page">
-            <div class="page-header">
-                <h1>Settings</h1>
-            </div>
-            <div class="page-content">
-                <div class="accordion" id="settingsAccordion">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingGeneral">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGeneral" aria-expanded="true" aria-controls="collapseGeneral">
-                                General
-                            </button>
-                        </h2>
-                        <div id="collapseGeneral" class="accordion-collapse collapse show" aria-labelledby="headingGeneral" data-bs-parent="#settingsAccordion">
-                            <div class="accordion-body">
-                                <!-- Current Balance Row -->
-                                <div class="mb-2">
-                                    <div id="currentBalanceDisplayGroup" class="d-flex justify-content-between align-items-center">
-                                        <span class="text-muted">Current Balance:</span>
-                                        <div class="d-flex align-items-center">
-                                            <span id="displayCurrentBalance" class="fw-bold me-2">$0</span>
-                                            <span class="action-emoji" onclick="toggleGeneralSettingEditMode('currentBalance', true)">✏️</span>
+                <!-- Charts Carousel -->
+                <div id="chartsCarousel" class="carousel slide mb-3" data-bs-ride="false">
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#chartsCarousel" data-bs-slide-to="0" class="active"
+                            aria-current="true" aria-label="Daily Balance"></button>
+                        <button type="button" data-bs-target="#chartsCarousel" data-bs-slide-to="1"
+                            aria-label="Expense Breakdown"></button>
+                        <button type="button" data-bs-target="#chartsCarousel" data-bs-slide-to="2"
+                            aria-label="Time to Target"></button>
+                    </div>
+                    <div class="carousel-inner">
+                        <!-- Slide 1: Daily Balance -->
+                        <div class="carousel-item active">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Daily Balance</h5>
+                                    <canvas id="daily-balance-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Slide 2: Expense Breakdown -->
+                        <div class="carousel-item">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Expense Breakdown</h5>
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <canvas id="expense-breakdown-chart"></canvas>
                                         </div>
-                                    </div>
-                                    <div id="currentBalanceEditGroup" class="mt-2" style="display: none;">
-                                        <div class="input-group input-group-sm mb-2">
-                                            <span class="input-group-text">$</span>
-                                            <input type="number" class="form-control" id="editCurrentBalanceInput">
-                                        </div>
-                                        <div class="d-flex justify-content-end">
-                                            <span class="action-emoji me-2" onclick="saveGeneralSetting('currentBalance')">💾</span>
-                                            <span class="action-emoji" onclick="toggleGeneralSettingEditMode('currentBalance', false)">❌</span>
+                                        <div class="col-md-4">
+                                            <div id="expense-breakdown-list"></div>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                        <!-- Slide 3: Time to Target -->
+                        <div class="carousel-item">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Time to Target</h5>
+                                    <canvas id="time-to-target-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#chartsCarousel"
+                        data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#chartsCarousel"
+                        data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
 
-                                <!-- Target Cash Amount Row -->
-                                <div class="mb-3">
-                                    <div id="targetCashDisplayGroup" class="d-flex justify-content-between align-items-center">
-                                        <span class="text-muted">Target Cash Amount:</span>
-                                        <div class="d-flex align-items-center">
-                                            <span id="displayTargetCash" class="fw-bold me-2">$0</span>
-                                            <span class="action-emoji" onclick="toggleGeneralSettingEditMode('targetCash', true)">✏️</span>
-                                        </div>
-                                    </div>
-                                    <div id="targetCashEditGroup" class="mt-2" style="display: none;">
-                                        <div class="input-group input-group-sm mb-2">
-                                            <span class="input-group-text">$</span>
-                                            <input type="number" class="form-control" id="editTargetCashInput">
-                                        </div>
-                                        <div class="d-flex justify-content-end">
-                                            <span class="action-emoji me-2" onclick="saveGeneralSetting('targetCash')">💾</span>
-                                            <span class="action-emoji" onclick="toggleGeneralSettingEditMode('targetCash', false)">❌</span>
-                                        </div>
-                                    </div>
-                                </div>
+                <!-- Projections / Vars -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Projections</h5>
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <td>Spend to Date (Month)</td>
+                                    <td id="spend-to-date">0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>Spent Per Day</td>
+                                    <td id="spent-per-day">0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>Monthly Spent Projection</td>
+                                    <td id="monthly-spent-projection">0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>Net Monthly Projection</td>
+                                    <td id="net-monthly-projection">0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>Time to Reach Target</td>
+                                    <td id="time-to-reach-target">N/A</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
 
-                                <!-- Thousands Suffix Toggle (remains as is, saves independently) -->
-                                <div class="mb-3 form-check form-switch mt-3">
-                                    <input class="form-check-input" type="checkbox" id="thousands-suffix-toggle" onchange="handleThousandsSuffixToggle()">
-                                    <label class="form-check-label" for="thousands-suffix-toggle">Use 'k' for thousands (e.g., 100k)</label>
-                                </div>
-                            </div>
+        <!-- Add Transaction Tab Content -->
+        <div id="tab-add" class="tab-content d-none fade-in">
+            <section id="add-transaction" class="mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Add Transaction</h5>
+                        <div class="mb-3">
+                            <label for="transaction-date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="transaction-date">
                         </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingRecurringIncome">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRecurringIncome" aria-expanded="false" aria-controls="collapseRecurringIncome">
-                                Recurring Income
-                            </button>
-                        </h2>
-                        <div id="collapseRecurringIncome" class="accordion-collapse collapse" aria-labelledby="headingRecurringIncome" data-bs-parent="#settingsAccordion">
-                            <div class="accordion-body">
-                                <div id="recurring-incomes-list" class="mb-3"></div>
-                                <div class="input-group">
-                                    <span class="input-group-text">🗓️</span>
-                                    <input type="number" id="recurring-income-day-input" class="form-control" placeholder="Day (1-31)" min="1" max="31">
-                                    <span class="input-group-text">💰</span>
-                                    <input type="number" id="recurring-income-amount-input" class="form-control" placeholder="Amount">
-                                    <span class="action-emoji" onclick="addRecurringIncome()">➕</span>
-                                </div>
-                            </div>
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">Amount</label>
+                            <input type="number" class="form-control" id="amount" placeholder="0.00">
                         </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingOneTimeIncome">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOneTimeIncome" aria-expanded="false" aria-controls="collapseOneTimeIncome">
-                                Add One-Time Income
-                            </button>
-                        </h2>
-                        <div id="collapseOneTimeIncome" class="accordion-collapse collapse" aria-labelledby="headingOneTimeIncome" data-bs-parent="#settingsAccordion">
-                            <div class="accordion-body">
-                                <div class="input-group">
-                                    <input type="number" id="income-amount-input" class="form-control" placeholder="Amount">
-                                    <input type="text" id="income-notes-input" class="form-control" placeholder="Notes">
-                                    <span class="action-emoji" onclick="addIncome()">➕</span>
-                                </div>
-                            </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <input type="text" class="form-control" id="description" placeholder="e.g., Groceries">
                         </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingFixedExpenses">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFixedExpenses" aria-expanded="false" aria-controls="collapseFixedExpenses">
-                                Fixed Monthly Expenses
-                            </button>
-                        </h2>
-                        <div id="collapseFixedExpenses" class="accordion-collapse collapse" aria-labelledby="headingFixedExpenses" data-bs-parent="#settingsAccordion">
-                            <div class="accordion-body">
-                                <div id="fixed-expenses-list" class="mb-3"></div>
-                                <div class="input-group">
-                                    <input type="text" id="fixed-expense-description-input" class="form-control" placeholder="Expense Description">
-                                    <input type="number" id="fixed-expense-amount-input" class="form-control" placeholder="Amount">
-                                    <span class="action-emoji" onclick="addFixedExpense()">➕</span>
-                                </div>
-                            </div>
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category">
+                                <!-- Options populated dynamically -->
+                            </select>
+                            <input type="text" class="form-control mt-2 d-none" id="custom-category"
+                                placeholder="Enter new category">
                         </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingDataManagement">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDataManagement" aria-expanded="false" aria-controls="collapseDataManagement">
-                                Data Management
-                            </button>
-                        </h2>
-                        <div id="collapseDataManagement" class="accordion-collapse collapse" aria-labelledby="headingDataManagement" data-bs-parent="#settingsAccordion">
-                            <div class="accordion-body">
-                                <div class="d-grid gap-2">
-                                    <button class="btn btn-outline-primary" type="button" id="export-csv-btn">Export to CSV</button>
-                                    <label for="import-csv-input" class="btn btn-outline-primary">Import from CSV</label>
-                                    <input type="file" id="import-csv-input" accept=".csv" style="display: none;">
-                                </div>
-                            </div>
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-primary" id="add-expense-btn">Add Expense</button>
+                            <button type="button" class="btn btn-success" id="add-income-btn">Add Income</button>
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
+        </div>
+
+        <!-- Settings Tab Content -->
+        <div id="tab-settings" class="tab-content d-none fade-in">
+            <section id="settings" class="mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Settings</h5>
+
+                        <div class="accordion" id="settingsAccordion">
+                            <!-- General Settings -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingGeneral">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseGeneral" aria-expanded="false"
+                                        aria-controls="collapseGeneral">
+                                        General
+                                    </button>
+                                </h2>
+                                <div id="collapseGeneral" class="accordion-collapse collapse"
+                                    aria-labelledby="headingGeneral" data-bs-parent="#settingsAccordion">
+                                    <div class="accordion-body">
+                                        <div class="mb-3">
+                                            <label for="current-balance" class="form-label">Current Balance</label>
+                                            <input type="number" class="form-control" id="current-balance"
+                                                placeholder="0.00">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="target-cash" class="form-label">Target Cash Amount</label>
+                                            <input type="number" class="form-control" id="target-cash"
+                                                placeholder="0.00">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="target-date" class="form-label">Target Date</label>
+                                            <input type="date" class="form-control" id="target-date">
+                                        </div>
+                                        <div class="form-check form-switch mb-3">
+                                            <input class="form-check-input" type="checkbox"
+                                                id="thousands-suffix-toggle">
+                                            <label class="form-check-label" for="thousands-suffix-toggle">Use 'k' for
+                                                thousands</label>
+                                        </div>
+                                        <hr>
+                                        <!-- Recurring Income -->
+                                        <h6 class="mt-3">Recurring Income</h6>
+                                        <div id="recurring-incomes-list" class="mb-2"></div>
+                                        <div class="input-group mb-3">
+                                            <input type="number" id="recurring-income-day" class="form-control"
+                                                placeholder="Day (1-31)" min="1" max="31">
+                                            <input type="number" id="recurring-income-amount" class="form-control"
+                                                placeholder="Amount">
+                                            <button class="btn btn-outline-success" type="button"
+                                                id="add-recurring-income-btn">+</button>
+                                        </div>
+                                        <hr>
+                                        <!-- Fixed Expenses -->
+                                        <h6 class="mt-3">Fixed Monthly Expenses</h6>
+                                        <div id="fixed-expenses-list" class="mb-2"></div>
+                                        <div class="input-group mb-3">
+                                            <input type="text" id="fixed-expense-desc" class="form-control"
+                                                placeholder="Description">
+                                            <input type="number" id="fixed-expense-amount" class="form-control"
+                                                placeholder="Amount">
+                                            <button class="btn btn-outline-danger" type="button"
+                                                id="add-fixed-expense-btn">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Data Management -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingData">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseData" aria-expanded="false"
+                                        aria-controls="collapseData">
+                                        Data Management
+                                    </button>
+                                </h2>
+                                <div id="collapseData" class="accordion-collapse collapse" aria-labelledby="headingData"
+                                    data-bs-parent="#settingsAccordion">
+                                    <div class="accordion-body">
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-outline-primary" type="button"
+                                                id="export-csv-btn">Export to CSV</button>
+                                            <label for="import-csv-input" class="btn btn-outline-primary">Import from
+                                                CSV</label>
+                                            <input type="file" id="import-csv-input" accept=".csv"
+                                                style="display: none;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="button" class="btn btn-primary" id="save-settings-btn">Save Settings</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
 
-    <!-- Bottom Navbar -->
-    <div class="navbar">
-        <a href="#" class="nav-button" data-page="statistics">
-            <img src="res/a.png" alt="Stats">
-            <span>Stats</span>
-        </a>
-        <a href="#" class="nav-button" data-page="history">
-            <img src="res/b.png" alt="History">
-            <span>History</span>
-        </a>
-        <a href="#" class="nav-button special" data-page="add-transaction">
-            <img src="res/c.png" alt="Add">
-        </a>
-        <a href="#" class="nav-button" data-page="vars">
-            <img src="res/d.png" alt="Vars">
-            <span>Vars</span>
-        </a>
-        <a href="#" class="nav-button" data-page="settings">
-            <img src="res/e.png" alt="Settings">
-            <span>Settings</span>
-        </a>
-    </div>
+    <!-- Bottom Navigation -->
+    <nav class="navbar fixed-bottom navbar-light bg-light border-top">
+        <div class="container-fluid justify-content-around">
+            <a class="nav-link text-center active" href="#" data-tab="tab-home">
+                <i class="bi bi-house fs-4"></i>
+                <div class="small">Home</div>
+            </a>
+            <a class="nav-link text-center" href="#" data-tab="tab-stats">
+                <i class="bi bi-bar-chart fs-4"></i>
+                <div class="small">Stats</div>
+            </a>
+            <a class="nav-link text-center" href="#" data-tab="tab-add">
+                <i class="bi bi-plus-circle fs-4"></i>
+                <div class="small">Add</div>
+            </a>
+            <a class="nav-link text-center" href="#" data-tab="tab-settings">
+                <i class="bi bi-gear fs-4"></i>
+                <div class="small">Settings</div>
+            </a>
+        </div>
+    </nav>
 
     <!-- Edit Transaction Modal -->
-    <div class="modal fade" id="editTransactionModal" tabindex="-1" aria-labelledby="editTransactionModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="editTransactionModalLabel">Edit Transaction</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <input type="hidden" id="edit-transaction-index">
-            <div class="mb-3">
-              <label for="edit-transaction-date" class="form-label">Date</label>
-              <input type="date" class="form-control" id="edit-transaction-date">
+    <div class="modal fade" id="editTransactionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Transaction</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit-id">
+                    <div class="mb-3">
+                        <label for="edit-date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="edit-date">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-amount" class="form-label">Amount</label>
+                        <input type="number" class="form-control" id="edit-amount">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-description" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="edit-description">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-category" class="form-label">Category</label>
+                        <select class="form-select" id="edit-category">
+                            <!-- Options populated dynamically -->
+                        </select>
+                        <input type="text" class="form-control mt-2 d-none" id="edit-custom-category"
+                            placeholder="Enter new category">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="save-edit-btn">Save changes</button>
+                </div>
             </div>
-            <div class="mb-3">
-              <label for="edit-transaction-type" class="form-label">Type</label>
-              <div class="btn-group" role="group" aria-label="Edit Transaction type">
-                <input type="radio" class="btn-check" name="editTransactionType" id="edit-gasto" value="gasto" autocomplete="off">
-                <label class="btn btn-outline-primary" for="edit-gasto">Gasto</label>
-
-                <input type="radio" class="btn-check" name="editTransactionType" id="edit-ingreso" value="ingreso" autocomplete="off">
-                <label class="btn btn-outline-primary" for="edit-ingreso">Ingreso</label>
-              </div>
-            </div>
-            <div class="mb-3">
-              <label for="edit-transaction-amount" class="form-label">Amount</label>
-              <input type="number" class="form-control" id="edit-transaction-amount">
-            </div>
-            <div class="mb-3">
-              <label for="edit-transaction-notes" class="form-label">Notes</label>
-              <input type="text" class="form-control" id="edit-transaction-notes">
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" onclick="saveEditedTransaction()">Save changes</button>
-          </div>
         </div>
-      </div>
     </div>
 
-    <!-- Confirmation Modal -->
-    <div class="modal fade" id="confirmationModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="confirmationModalLabel">Confirm Action</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body" id="confirmationModalBody">
-            Are you sure you want to perform this action?
-          </div>
-          <div class="modal-footer" id="confirmationModalFooter">
-            <!-- Buttons will be dynamically inserted here -->
-          </div>
+    <!-- Edit Recurring Income Modal -->
+    <div class="modal fade" id="editRecurringIncomeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Recurring Income</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit-income-index">
+                    <div class="mb-3">
+                        <label for="edit-income-day" class="form-label">Day of Month (1-31)</label>
+                        <input type="number" class="form-control" id="edit-income-day" min="1" max="31">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-income-amount" class="form-label">Amount</label>
+                        <input type="number" class="form-control" id="edit-income-amount" step="0.01" min="0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="save-edit-income-btn">Save changes</button>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
-    <script src="vendor/bootstrap.bundle.min.js"></script>
-    <script src="vendor/chart.js"></script>
-    <script src="app.js"></script>
+    <!-- Edit Fixed Expense Modal -->
+    <div class="modal fade" id="editFixedExpenseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Fixed Expense</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit-expense-index">
+                    <div class="mb-3">
+                        <label for="edit-expense-desc" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="edit-expense-desc">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-expense-amount" class="form-label">Amount</label>
+                        <input type="number" class="form-control" id="edit-expense-amount" step="0.01" min="0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="save-edit-expense-btn">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor/js/bootstrap.bundle.min.js"></script>
+    <script src="vendor/js/chart.js"></script>
+    <script src="js/app.js?v=2.1" type="module"></script>
     <script>
+        // Service Worker commented out for development
         if ('serviceWorker' in navigator) {
-            let newWorker;
-
-            navigator.serviceWorker.register('sw.js').then(reg => {
-                // Show a toast if an update is found
-                reg.addEventListener('updatefound', () => {
-                    newWorker = reg.installing;
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            const toastMessage = `
-                                New version available!
-                                <button class="btn btn-light btn-sm float-end ms-2" onclick="newWorker.postMessage({ action: 'skipWaiting' })">
-                                    Reload
-                                </button>
-                            `;
-                            showToast(toastMessage, 'info', { autohide: false });
-                        }
-                    });
-                });
-
-                // Show a toast when the app is ready for offline use for the first time
-                if (!localStorage.getItem('pwa_installed') && reg.ready) {
-                    reg.ready.then(() => {
-                         if (navigator.serviceWorker.controller) {
-                            showToast('App is ready for offline use.', 'success');
-                            localStorage.setItem('pwa_installed', 'true');
-                        }
-                    });
-                }
-            });
-
-            // Reload the page after the new service worker has taken control
-            let refreshing;
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (refreshing) return;
-                showToast('App has been updated!', 'success');
-                window.location.reload();
-                refreshing = true;
-            });
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker registration failed', err));
         }
     </script>
 </body>
+
 </html>

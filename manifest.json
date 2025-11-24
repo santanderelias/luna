@@ -1,20 +1,19 @@
 {
-  "name": "Luna",
-  "short_name": "Luna",
-  "scope": "https://santanderelias.github.io/luna/",
-  "start_url": "https://santanderelias.github.io/luna/index.html",
+  "name": "Luna v2",
+  "short_name": "Luna v2",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f0f2f5",
-  "theme_color": "#007AFF",
-  "description": "A simple personal finance tracker.",
+  "background_color": "#ffffff",
+  "theme_color": "#0d6efd",
+  "description": "A simple personal finance tracker v2.",
   "icons": [
     {
-      "src": "https://santanderelias.github.io/luna/res/icon-192x192.png",
+      "src": "res/icon-192x192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "https://santanderelias.github.io/luna/res/icon-512x512.png",
+      "src": "res/icon-512x512.png",
       "type": "image/png",
       "sizes": "512x512"
     }

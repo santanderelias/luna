@@ -244,3 +244,45 @@ Daily Net Change =
 ---
 
 *Last Updated: November 24, 2025*
+
+---
+
+## Session: November 24, 2025 (Evening) - UI/UX Polish & Navbar Enhancements
+
+### 🎯 Changes Implemented
+1. **Navbar Enhancements**
+   - **Fixed Height Jitter**: Removed `font-weight` changes and hover lift effects to prevent layout shifts.
+   - **Reduced Size**: Set fixed height of 60px and removed excessive padding.
+   - **Bottom Indicator**: Moved active tab indicator to the bottom for better aesthetics.
+   - **Visuals**: Enhanced glassmorphism and touch targets.
+
+2. **Swipe Gestures**
+   - Added left/right swipe support for tab navigation.
+
+3. **Loading States**
+   - Added skeleton loaders for charts.
+
+4. **Robust Initialization**
+   - Fixed `app.js` to safely initialize elements, preventing crashes if cached HTML is served.
+
+5. **Layout Stability**
+   - **Fixed Navbar Layout**: Ensured all buttons are visible and evenly distributed using flexbox.
+   - **Scrollbar Stability**: Added `scrollbar-gutter: stable` and `overflow-x: hidden` to prevent layout shifts and horizontal scrolling during transitions.
+
+### 🔜 Next Steps (Prioritized)
+
+1. **Fix Charts**
+   - General improvements to chart rendering and responsiveness.
+
+2. **Fix Charts Carousel**
+   - Address any remaining layout or interaction issues with the carousel.
+
+3. **Improve Information Display**
+   - Redesign the "Projections / Vars" section (currently "Projections" card).
+   - Make it cleaner and more visually appealing.
+
+4. **Fix Settings Inputs UX**
+   - **Current Balance**, **Target Cash Amount**, **Target Date**:
+     - Remove unclear auto-save on blur.
+     - Add explicit "Save" or "Update" buttons (similar to Recurring Income input group pattern).
+     - Provide clear feedback when saved.

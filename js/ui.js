@@ -46,7 +46,13 @@ export function renderTransactions(transactions) {
     transactionList.innerHTML = '';
 
     if (transactions.length === 0) {
-        transactionList.innerHTML = '<li class="list-group-item text-center text-muted">No transactions found.</li>';
+        transactionList.innerHTML = `
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <h6>No Transactions Yet</h6>
+                <p>Start tracking your finances by adding your first transaction</p>
+            </div>
+        `;
         return;
     }
 

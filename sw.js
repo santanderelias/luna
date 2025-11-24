@@ -1,4 +1,4 @@
-const CACHE_NAME = 'luna-v2-cache-v2';
+const CACHE_NAME = 'luna-cache-v1.1';
 const ASSETS_TO_CACHE = [
     'https://santanderelias.github.io/luna/',
     'https://santanderelias.github.io/luna/index.html',

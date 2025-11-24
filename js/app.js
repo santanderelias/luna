@@ -3,65 +3,7 @@ import { renderTransactions } from './ui.js';
 import { renderCharts } from './charts.js';
 import { calculateBalance, calculateProjections, formatCurrency } from './calculator.js';
 
-const elements = {
-    addExpenseBtn: document.getElementById('add-expense-btn'),
-    addIncomeBtn: document.getElementById('add-income-btn'),
-    amountInput: document.getElementById('amount'),
-    dateInput: document.getElementById('transaction-date'),
-    descriptionInput: document.getElementById('description'),
-    categoryInput: document.getElementById('category'),
-    transactionList: document.querySelector('#history .list-group'),
-    saveNotesBtn: document.getElementById('save-notes-btn'),
-    currentBalanceInput: document.getElementById('current-balance'),
-    targetCashInput: document.getElementById('target-cash'),
-    thousandsSuffixToggle: document.getElementById('thousands-suffix-toggle'),
-    recurringIncomesList: document.getElementById('recurring-incomes-list'),
-    addRecurringIncomeBtn: document.getElementById('add-recurring-income-btn'),
-    recurringIncomeDay: document.getElementById('recurring-income-day'),
-    recurringIncomeAmount: document.getElementById('recurring-income-amount'),
-    fixedExpensesList: document.getElementById('fixed-expenses-list'),
-    addFixedExpenseBtn: document.getElementById('add-fixed-expense-btn'),
-    fixedExpenseDesc: document.getElementById('fixed-expense-desc'),
-    fixedExpenseAmount: document.getElementById('fixed-expense-amount'),
-    exportCsvBtn: document.getElementById('export-csv-btn'),
-    importCsvInput: document.getElementById('import-csv-input'),
-    balanceDisplay: document.getElementById('current-balance-display'),
-    fieldTestNotes: document.getElementById('field-test-notes'),
-    // Nav Elements
-    navLinks: document.querySelectorAll('.nav-link'),
-    tabContents: document.querySelectorAll('.tab-content'),
-
-    // Edit Modal Elements
-    editModal: new bootstrap.Modal(document.getElementById('editTransactionModal')),
-    editIdInput: document.getElementById('edit-id'),
-    editDateInput: document.getElementById('edit-date'),
-    editAmountInput: document.getElementById('edit-amount'),
-    editDescriptionInput: document.getElementById('edit-description'),
-    editCategoryInput: document.getElementById('edit-category'),
-    saveEditBtn: document.getElementById('save-edit-btn'),
-
-    // Edit Recurring Income Modal
-    editIncomeModal: new bootstrap.Modal(document.getElementById('editRecurringIncomeModal')),
-    editIncomeIndexInput: document.getElementById('edit-income-index'),
-    editIncomeDayInput: document.getElementById('edit-income-day'),
-    editIncomeAmountInput: document.getElementById('edit-income-amount'),
-    saveEditIncomeBtn: document.getElementById('save-edit-income-btn'),
-
-    // Edit Fixed Expense Modal
-    editExpenseModal: new bootstrap.Modal(document.getElementById('editFixedExpenseModal')),
-    editExpenseIndexInput: document.getElementById('edit-expense-index'),
-    editExpenseDescInput: document.getElementById('edit-expense-desc'),
-    editExpenseAmountInput: document.getElementById('edit-expense-amount'),
-    saveEditExpenseBtn: document.getElementById('save-edit-expense-btn'),
-
-    // New Elements
-    targetDateInput: document.getElementById('target-date'),
-    searchInput: document.getElementById('search-input'),
-    filterCategory: document.getElementById('filter-category'),
-    customCategoryInput: document.getElementById('custom-category'),
-    editCustomCategoryInput: document.getElementById('edit-custom-category')
-};
-
+// Global state
 let state = {
     transactions: [],
     settings: {
@@ -70,6 +12,153 @@ let state = {
     timeRange: 'this-month',
     includeFixedExpenses: true
 };
+
+// Elements object - initialized in init()
+let elements = {};
+
+// Toast Notification Helper
+function showToast(message, type = 'success') {
+    const toastEl = document.getElementById('notification-toast');
+    const toastBody = document.getElementById('toast-message');
+
+    // Set message
+    toastBody.textContent = message;
+
+    // Remove previous type classes
+    toastEl.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info');
+
+    // Add appropriate class based on type
+    if (type === 'success') {
+        toastEl.classList.add('bg-success');
+    } else if (type === 'error') {
+        toastEl.classList.add('bg-danger');
+    } else if (type === 'warning') {
+        toastEl.classList.add('bg-warning');
+    } else if (type === 'info') {
+        toastEl.classList.add('bg-info');
+    }
+
+    // Show toast
+    const toast = new bootstrap.Toast(toastEl, {
+        autohide: true,
+        delay: 3000
+    });
+    toast.show();
+}
+
+
+// Swipe Gesture Support
+let touchStartX = 0;
+let touchEndX = 0;
+const SWIPE_THRESHOLD = 50; // Minimum distance for swipe
+
+function handleSwipe() {
+    const swipeDistance = touchEndX - touchStartX;
+
+    if (Math.abs(swipeDistance) < SWIPE_THRESHOLD) return;
+
+    const tabs = ['tab-home', 'tab-stats', 'tab-add', 'tab-settings'];
+    const currentTab = tabs.find(tab => !document.getElementById(tab).classList.contains('d-none'));
+    const currentIndex = tabs.indexOf(currentTab);
+
+    if (swipeDistance > 0 && currentIndex > 0) {
+        // Swipe right - go to previous tab
+        switchTab(tabs[currentIndex - 1]);
+    } else if (swipeDistance < 0 && currentIndex < tabs.length - 1) {
+        // Swipe left - go to next tab
+        switchTab(tabs[currentIndex + 1]);
+    }
+}
+
+// Initialize Elements
+function initializeElements() {
+    const getEl = (id) => document.getElementById(id);
+    const getModal = (id) => {
+        const el = document.getElementById(id);
+        if (!el) {
+            console.warn(`Modal element #${id} not found!`);
+            return null;
+        }
+        return new bootstrap.Modal(el);
+    };
+
+    elements = {
+        addExpenseBtn: getEl('add-expense-btn'),
+        addIncomeBtn: getEl('add-income-btn'),
+        amountInput: getEl('amount'),
+        dateInput: getEl('transaction-date'),
+        descriptionInput: getEl('description'),
+        categoryInput: getEl('category'),
+        transactionList: document.querySelector('#history .list-group'),
+        saveNotesBtn: getEl('save-notes-btn'),
+        currentBalanceInput: getEl('current-balance'),
+        targetCashInput: getEl('target-cash'),
+        thousandsSuffixToggle: getEl('thousands-suffix-toggle'),
+        recurringIncomesList: getEl('recurring-incomes-list'),
+        addRecurringIncomeBtn: getEl('add-recurring-income-btn'),
+        recurringIncomeDay: getEl('recurring-income-day'),
+        recurringIncomeAmount: getEl('recurring-income-amount'),
+        fixedExpensesList: getEl('fixed-expenses-list'),
+        addFixedExpenseBtn: getEl('add-fixed-expense-btn'),
+        fixedExpenseDesc: getEl('fixed-expense-desc'),
+        fixedExpenseAmount: getEl('fixed-expense-amount'),
+        exportCsvBtn: getEl('export-csv-btn'),
+        importCsvInput: getEl('import-csv-input'),
+        balanceDisplay: getEl('current-balance-display'),
+        fieldTestNotes: getEl('field-test-notes'),
+        // Nav Elements
+        navLinks: document.querySelectorAll('.nav-link'),
+        tabContents: document.querySelectorAll('.tab-content'),
+
+        // Edit Modal Elements
+        editModal: getModal('editTransactionModal'),
+        editIdInput: getEl('edit-id'),
+        editDateInput: getEl('edit-date'),
+        editAmountInput: getEl('edit-amount'),
+        editDescriptionInput: getEl('edit-description'),
+        editCategoryInput: getEl('edit-category'),
+        saveEditBtn: getEl('save-edit-btn'),
+
+        // Edit Recurring Income Modal
+        editIncomeModal: getModal('editRecurringIncomeModal'),
+        editIncomeIndexInput: getEl('edit-income-index'),
+        editIncomeDayInput: getEl('edit-income-day'),
+        editIncomeAmountInput: getEl('edit-income-amount'),
+        saveEditIncomeBtn: getEl('save-edit-income-btn'),
+
+        // Edit Fixed Expense Modal
+        editExpenseModal: getModal('editFixedExpenseModal'),
+        editExpenseIndexInput: getEl('edit-expense-index'),
+        editExpenseDescInput: getEl('edit-expense-desc'),
+        editExpenseAmountInput: getEl('edit-expense-amount'),
+        saveEditExpenseBtn: getEl('save-edit-expense-btn'),
+
+        // New Elements
+        targetDateInput: getEl('target-date'),
+        searchInput: getEl('search-input'),
+        filterCategory: getEl('filter-category'),
+        customCategoryInput: getEl('custom-category'),
+        editCustomCategoryInput: getEl('edit-custom-category')
+    };
+
+    console.log('Elements initialized:', elements);
+}
+
+
+// Add touch event listeners to content area
+document.addEventListener('DOMContentLoaded', () => {
+    const contentArea = document.getElementById('content-area');
+
+    contentArea.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    contentArea.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, { passive: true });
+});
+
 
 function updateBalance() {
     const balance = calculateBalance(state.transactions) + state.settings.currentBalance;
@@ -149,8 +238,8 @@ function addTransaction(type) {
         category = elements.customCategoryInput.value.trim();
     }
 
-    if (!amount || !description || !category || category === 'Choose...' || !date) {
-        alert('Please fill out all fields.');
+    if (!date || !amount || !description || !category) {
+        showToast('Please fill out all fields', 'warning');
         return;
     }
 
@@ -263,6 +352,11 @@ function handleTransactionActions(e) {
 }
 
 function switchTab(tabId) {
+    // Haptic feedback for mobile devices
+    if ('vibrate' in navigator) {
+        navigator.vibrate(10); // Short vibration (10ms)
+    }
+
     // Update Nav Links
     elements.navLinks.forEach(link => {
         if (link.dataset.tab === tabId) {
@@ -272,10 +366,13 @@ function switchTab(tabId) {
         }
     });
 
-    // Update Tab Content
+    // Update Tab Content with fade effect
     elements.tabContents.forEach(content => {
         if (content.id === tabId) {
             content.classList.remove('d-none');
+            // Trigger reflow to restart animation
+            void content.offsetWidth;
+            content.classList.add('fade-in');
         } else {
             content.classList.add('d-none');
         }
@@ -318,7 +415,7 @@ function updateProjections() {
 function saveNotes() {
     state.settings.fieldTestNotes = elements.fieldTestNotes.value;
     saveDB(state);
-    alert('Notes saved!');
+    showToast('Notes saved successfully!', 'success');
 }
 
 function loadSettings() {
@@ -333,6 +430,17 @@ function loadSettings() {
 
 function renderRecurringIncomes() {
     elements.recurringIncomesList.innerHTML = '';
+
+    if (state.settings.recurringIncomes.length === 0) {
+        elements.recurringIncomesList.innerHTML = `
+            <div class="text-center text-muted py-3" style="font-size: 0.875rem;">
+                <i class="bi bi-calendar-plus" style="font-size: 2rem; opacity: 0.3;"></i>
+                <p class="mb-0 mt-2">No recurring incomes yet</p>
+            </div>
+        `;
+        return;
+    }
+
     state.settings.recurringIncomes.forEach((income, index) => {
         const div = document.createElement('div');
         div.className = 'input-group mb-2';
@@ -348,6 +456,17 @@ function renderRecurringIncomes() {
 
 function renderFixedExpenses() {
     elements.fixedExpensesList.innerHTML = '';
+
+    if (state.settings.fixedExpenses.length === 0) {
+        elements.fixedExpensesList.innerHTML = `
+            <div class="text-center text-muted py-3" style="font-size: 0.875rem;">
+                <i class="bi bi-receipt" style="font-size: 2rem; opacity: 0.3;"></i>
+                <p class="mb-0 mt-2">No fixed expenses yet</p>
+            </div>
+        `;
+        return;
+    }
+
     state.settings.fixedExpenses.forEach((expense, index) => {
         const div = document.createElement('div');
         div.className = 'input-group mb-2';
@@ -402,7 +521,7 @@ function saveEditedRecurringIncome() {
         renderRecurringIncomes();
         elements.editIncomeModal.hide();
     } else {
-        alert('Invalid day or amount');
+        showToast('Invalid day or amount', 'error');
     }
 }
 
@@ -417,7 +536,7 @@ function saveEditedFixedExpense() {
         renderFixedExpenses();
         elements.editExpenseModal.hide();
     } else {
-        alert('Invalid description or amount');
+        showToast('Invalid description or amount', 'error');
     }
 }
 
@@ -465,71 +584,90 @@ function importCSV(event) {
     if (file) {
         const reader = new FileReader();
         reader.onload = function (e) {
-            const text = e.target.result;
-            const rows = text.split('\n').slice(1); // Skip header
-            rows.forEach(row => {
-                const cols = row.split(',');
-                if (cols.length >= 5) {
-                    state.transactions.push({
-                        id: Date.now() + Math.random(), // Ensure unique ID
-                        date: cols[0],
-                        type: cols[1],
-                        category: cols[2],
-                        description: cols[3],
-                        amount: parseFloat(cols[4])
-                    });
-                }
-            });
-            saveDB(state);
-            renderTransactions(state.transactions);
-            updateBalance();
-            alert('Import successful!');
+            try {
+                const text = e.target.result;
+                const rows = text.split('\n').slice(1); // Skip header
+                rows.forEach(row => {
+                    const cols = row.split(',');
+                    if (cols.length >= 5) {
+                        state.transactions.push({
+                            id: Date.now() + Math.random(), // Ensure unique ID
+                            date: cols[0],
+                            type: cols[1],
+                            category: cols[2],
+                            description: cols[3],
+                            amount: parseFloat(cols[4])
+                        });
+                    }
+                });
+                loadDB();
+                renderTransactions(state.transactions);
+                updateBalance();
+                showToast('Data imported successfully!', 'success');
+            } catch (error) {
+                showToast('Import failed. Please check the file format.', 'error');
+            }
         };
         reader.readAsText(file);
     }
 }
 
+// Initialize app
+document.addEventListener('DOMContentLoaded', () => {
+    init();
+});
+
 function init() {
+    initializeElements();
+
     const db = loadDB();
     state.transactions = db.transactions || [];
     state.settings = db.settings;
 
     // Set default date to today
-    elements.dateInput.value = new Date().toISOString().split('T')[0];
+    if (elements.dateInput) {
+        elements.dateInput.value = new Date().toISOString().split('T')[0];
+    }
 
     renderTransactions(state.transactions);
     loadSettings();
     updateBalance();
     updateCategoryOptions();
 
-    elements.addExpenseBtn.addEventListener('click', () => addTransaction('expense'));
-    elements.addIncomeBtn.addEventListener('click', () => addTransaction('income'));
-    elements.transactionList.addEventListener('click', handleTransactionActions);
-    elements.addRecurringIncomeBtn.addEventListener('click', addRecurringIncome);
-    elements.addFixedExpenseBtn.addEventListener('click', addFixedExpense);
-    elements.exportCsvBtn.addEventListener('click', exportCSV);
-    elements.importCsvInput.addEventListener('change', importCSV);
-    elements.saveEditBtn.addEventListener('click', saveEditedTransaction);
-    elements.saveEditIncomeBtn.addEventListener('click', saveEditedRecurringIncome);
-    elements.saveEditExpenseBtn.addEventListener('click', saveEditedFixedExpense);
-    elements.saveNotesBtn.addEventListener('click', saveNotes);
+    // Initial Chart Render
+    renderCharts(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses);
+
+    // Event Listeners
+    if (elements.addExpenseBtn) elements.addExpenseBtn.addEventListener('click', () => addTransaction('expense'));
+    if (elements.addIncomeBtn) elements.addIncomeBtn.addEventListener('click', () => addTransaction('income'));
+    if (elements.transactionList) elements.transactionList.addEventListener('click', handleTransactionActions);
+    if (elements.addRecurringIncomeBtn) elements.addRecurringIncomeBtn.addEventListener('click', addRecurringIncome);
+    if (elements.addFixedExpenseBtn) elements.addFixedExpenseBtn.addEventListener('click', addFixedExpense);
+    if (elements.exportCsvBtn) elements.exportCsvBtn.addEventListener('click', exportCSV);
+    if (elements.importCsvInput) elements.importCsvInput.addEventListener('change', importCSV);
+    if (elements.saveEditBtn) elements.saveEditBtn.addEventListener('click', saveEditedTransaction);
+    if (elements.saveEditIncomeBtn) elements.saveEditIncomeBtn.addEventListener('click', saveEditedRecurringIncome);
+    if (elements.saveEditExpenseBtn) elements.saveEditExpenseBtn.addEventListener('click', saveEditedFixedExpense);
+    if (elements.saveNotesBtn) elements.saveNotesBtn.addEventListener('click', saveNotes);
 
     // Search and Filter
-    elements.searchInput.addEventListener('input', filterAndRenderTransactions);
-    elements.filterCategory.addEventListener('change', filterAndRenderTransactions);
+    if (elements.searchInput) elements.searchInput.addEventListener('input', filterAndRenderTransactions);
+    if (elements.filterCategory) elements.filterCategory.addEventListener('change', filterAndRenderTransactions);
 
     // Dynamic Categories
-    elements.categoryInput.addEventListener('change', handleCategoryChange);
-    elements.editCategoryInput.addEventListener('change', handleCategoryChange);
+    if (elements.categoryInput) elements.categoryInput.addEventListener('change', handleCategoryChange);
+    if (elements.editCategoryInput) elements.editCategoryInput.addEventListener('change', handleCategoryChange);
 
     // Tab Navigation
-    elements.navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const tabId = link.dataset.tab;
-            switchTab(tabId);
+    if (elements.navLinks) {
+        elements.navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tabId = link.dataset.tab;
+                switchTab(tabId);
+            });
         });
-    });
+    }
 
     // Initial Tab
     switchTab('tab-home');
@@ -550,40 +688,59 @@ function init() {
     });
 
     // Fixed Expenses Toggle
-    document.getElementById('includeFixedExpenses').addEventListener('change', (e) => {
-        state.includeFixedExpenses = e.target.checked;
-        renderCharts(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses);
-        updateProjections();
-    });
+    const fixedExpensesToggle = document.getElementById('includeFixedExpenses');
+    if (fixedExpensesToggle) {
+        fixedExpensesToggle.addEventListener('change', (e) => {
+            state.includeFixedExpenses = e.target.checked;
+            renderCharts(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses);
+            updateProjections();
+        });
+    }
 
     // Auto-save settings on change
-    elements.currentBalanceInput.addEventListener('blur', () => {
-        const value = parseFloat(elements.currentBalanceInput.value);
-        if (!isNaN(value)) {
-            state.settings.currentBalance = value;
+    if (elements.currentBalanceInput) {
+        elements.currentBalanceInput.addEventListener('blur', () => {
+            const value = parseFloat(elements.currentBalanceInput.value);
+            if (!isNaN(value)) {
+                state.settings.currentBalance = value;
+                saveDB(state);
+                updateBalance();
+            }
+        });
+    }
+
+    if (elements.targetCashInput) {
+        elements.targetCashInput.addEventListener('blur', () => {
+            const value = parseFloat(elements.targetCashInput.value);
+            if (!isNaN(value)) {
+                state.settings.targetCash = value;
+                saveDB(state);
+            }
+        });
+    }
+
+    if (elements.targetDateInput) {
+        elements.targetDateInput.addEventListener('change', () => {
+            state.settings.targetDate = elements.targetDateInput.value;
             saveDB(state);
-            updateBalance();
-        }
-    });
+        });
+    }
 
-    elements.targetCashInput.addEventListener('blur', () => {
-        const value = parseFloat(elements.targetCashInput.value);
-        if (!isNaN(value)) {
-            state.settings.targetCash = value;
+    if (elements.thousandsSuffixToggle) {
+        elements.thousandsSuffixToggle.addEventListener('change', () => {
+            state.settings.useThousandsSuffix = elements.thousandsSuffixToggle.checked;
             saveDB(state);
-        }
-    });
+            updateBalance(); // Refresh balance display with new format
+        });
+    }
 
-    elements.targetDateInput.addEventListener('change', () => {
-        state.settings.targetDate = elements.targetDateInput.value;
-        saveDB(state);
-    });
-
-    elements.thousandsSuffixToggle.addEventListener('change', () => {
-        state.settings.useThousandsSuffix = elements.thousandsSuffixToggle.checked;
-        saveDB(state);
-        updateBalance(); // Refresh balance display with new format
-    });
+    // Make functions global for HTML event handlers
+    window.switchTab = switchTab;
+    window.editRecurringIncome = editRecurringIncome;
+    window.deleteRecurringIncome = deleteRecurringIncome;
+    window.editFixedExpense = editFixedExpense;
+    window.deleteFixedExpense = deleteFixedExpense;
+    window.editTransaction = editTransaction;
+    window.deleteTransaction = deleteTransaction;
 }
 
-init();

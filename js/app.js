@@ -26,6 +26,7 @@ const elements = {
     exportCsvBtn: document.getElementById('export-csv-btn'),
     importCsvInput: document.getElementById('import-csv-input'),
     balanceDisplay: document.getElementById('current-balance-display'),
+    fieldTestNotes: document.getElementById('field-test-notes'),
     // Nav Elements
     navLinks: document.querySelectorAll('.nav-link'),
     tabContents: document.querySelectorAll('.tab-content'),
@@ -325,6 +326,7 @@ function saveSettings() {
         state.settings.targetCash = isNaN(targetCash) ? 0 : targetCash;
         state.settings.targetDate = targetDate;
         state.settings.useThousandsSuffix = elements.thousandsSuffixToggle.checked;
+        state.settings.fieldTestNotes = elements.fieldTestNotes.value;
 
         saveDB(state);
         updateBalance();
@@ -340,6 +342,7 @@ function loadSettings() {
     elements.targetCashInput.value = state.settings.targetCash || 0;
     elements.targetDateInput.value = state.settings.targetDate || '';
     elements.thousandsSuffixToggle.checked = state.settings.useThousandsSuffix || false;
+    elements.fieldTestNotes.value = state.settings.fieldTestNotes || '';
     renderRecurringIncomes();
     renderFixedExpenses();
 }

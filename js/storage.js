@@ -7,17 +7,19 @@ export function saveDB(data) {
 export function loadDB() {
     const data = localStorage.getItem(DB_KEY);
     const parsedData = data ? JSON.parse(data) : {};
-    
+
     // Ensure defaults
     if (!parsedData.transactions) parsedData.transactions = [];
     if (!parsedData.settings) parsedData.settings = {};
-    
+
     const defaultSettings = {
         currentBalance: 0,
         targetCash: 0,
+        targetDate: '',
         fixedExpenses: [],
         recurringIncomes: [],
-        useThousandsSuffix: false
+        useThousandsSuffix: false,
+        fieldTestNotes: ''
     };
 
     parsedData.settings = { ...defaultSettings, ...parsedData.settings };

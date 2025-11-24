@@ -89,37 +89,40 @@ body {
     border-radius: 0.25rem;
 }
 
-/* Carousel Controls */
+/* Carousel - Remove default controls */
 .carousel-control-prev,
 .carousel-control-next {
-    width: 15%;
-    opacity: 1 !important;
-    z-index: 10;
-    background: none;
+    display: none !important;
 }
 
-.carousel-control-prev-icon,
-.carousel-control-next-icon {
-    filter: invert(0);
-    background-color: rgba(0, 0, 0, 0.6);
+/* Carousel Navigation Buttons */
+.carousel-nav-btn {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    width: 2.5rem;
-    height: 2.5rem;
-    background-size: 60%;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    display: block !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 2px solid #6c757d;
 }
 
-.carousel-control-prev:hover .carousel-control-prev-icon,
-.carousel-control-next:hover .carousel-control-next-icon {
-    background-color: rgba(0, 0, 0, 0.8);
-    border-color: rgba(255, 255, 255, 0.8);
+.carousel-nav-btn:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
 }
 
+.carousel-nav-btn i {
+    font-size: 1.2rem;
+}
+
+/* Carousel Indicators */
 .carousel-indicators {
-    margin-bottom: -2.5rem;
+    position: static;
+    margin: 0;
+    margin-bottom: 0;
     z-index: 10;
-    position: relative;
 }
 
 .carousel-indicators [data-bs-target] {
@@ -128,13 +131,48 @@ body {
     height: 12px;
     border-radius: 50%;
     opacity: 0.5;
-    border: 2px solid #fff;
+    border: 2px solid #6c757d;
     cursor: pointer;
+    margin: 0 4px;
 }
 
 .carousel-indicators .active {
     opacity: 1;
     background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* Chart Container - Fixed Height */
+.carousel-item .card {
+    height: 450px;
+}
+
+.carousel-item .card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.carousel-item canvas {
+    max-width: 100%;
+    height: auto !important;
+    flex: 1;
+}
+
+/* Mobile Responsive */
+@media (max-width: 576px) {
+    .carousel-item .card {
+        height: 400px;
+    }
+
+    .carousel-nav-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .carousel-nav-btn i {
+        font-size: 1rem;
+    }
 }
 
 /* Filters Bar - Sticky */

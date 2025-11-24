@@ -11,7 +11,7 @@ const elements = {
     descriptionInput: document.getElementById('description'),
     categoryInput: document.getElementById('category'),
     transactionList: document.querySelector('#history .list-group'),
-    saveSettingsBtn: document.getElementById('save-settings-btn'),
+    saveNotesBtn: document.getElementById('save-notes-btn'),
     currentBalanceInput: document.getElementById('current-balance'),
     targetCashInput: document.getElementById('target-cash'),
     thousandsSuffixToggle: document.getElementById('thousands-suffix-toggle'),
@@ -285,9 +285,8 @@ function switchTab(tabId) {
     if (tabId === 'tab-stats') {
         renderCharts(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses);
         updateProjections();
-    } else if (tabId === 'tab-settings') {
-        loadSettings();
     }
+    // Removed loadSettings() call - settings are now auto-saved
 }
 
 function updateProjections() {
@@ -316,25 +315,10 @@ function updateProjections() {
     }
 }
 
-function saveSettings() {
-    const newBalance = parseFloat(elements.currentBalanceInput.value);
-    const targetCash = parseFloat(elements.targetCashInput.value);
-    const targetDate = elements.targetDateInput.value;
-
-    if (!isNaN(newBalance)) {
-        state.settings.currentBalance = newBalance;
-        state.settings.targetCash = isNaN(targetCash) ? 0 : targetCash;
-        state.settings.targetDate = targetDate;
-        state.settings.useThousandsSuffix = elements.thousandsSuffixToggle.checked;
-        state.settings.fieldTestNotes = elements.fieldTestNotes.value;
-
-        saveDB(state);
-        updateBalance();
-        alert('Settings saved!');
-        toggleSettings();
-    } else {
-        alert('Invalid balance.');
-    }
+function saveNotes() {
+    state.settings.fieldTestNotes = elements.fieldTestNotes.value;
+    saveDB(state);
+    alert('Notes saved!');
 }
 
 function loadSettings() {
@@ -528,6 +512,7 @@ function init() {
     elements.saveEditBtn.addEventListener('click', saveEditedTransaction);
     elements.saveEditIncomeBtn.addEventListener('click', saveEditedRecurringIncome);
     elements.saveEditExpenseBtn.addEventListener('click', saveEditedFixedExpense);
+    elements.saveNotesBtn.addEventListener('click', saveNotes);
 
     // Search and Filter
     elements.searchInput.addEventListener('input', filterAndRenderTransactions);
@@ -569,6 +554,35 @@ function init() {
         state.includeFixedExpenses = e.target.checked;
         renderCharts(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses);
         updateProjections();
+    });
+
+    // Auto-save settings on change
+    elements.currentBalanceInput.addEventListener('blur', () => {
+        const value = parseFloat(elements.currentBalanceInput.value);
+        if (!isNaN(value)) {
+            state.settings.currentBalance = value;
+            saveDB(state);
+            updateBalance();
+        }
+    });
+
+    elements.targetCashInput.addEventListener('blur', () => {
+        const value = parseFloat(elements.targetCashInput.value);
+        if (!isNaN(value)) {
+            state.settings.targetCash = value;
+            saveDB(state);
+        }
+    });
+
+    elements.targetDateInput.addEventListener('change', () => {
+        state.settings.targetDate = elements.targetDateInput.value;
+        saveDB(state);
+    });
+
+    elements.thousandsSuffixToggle.addEventListener('change', () => {
+        state.settings.useThousandsSuffix = elements.thousandsSuffixToggle.checked;
+        saveDB(state);
+        updateBalance(); // Refresh balance display with new format
     });
 }
 

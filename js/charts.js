@@ -37,6 +37,9 @@ function renderDailyBalanceChart(transactions, settings, timeRange, includeFixed
             }]
         },
         options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
             scales: {
                 y: {
                     beginAtZero: true,
@@ -116,6 +119,11 @@ function renderExpenseBreakdownChart(transactions, timeRange) {
                 ],
                 borderWidth: 1
             }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.5
         }
     });
 
@@ -146,6 +154,11 @@ function renderTimeToTargetChart(transactions, settings) {
                 borderColor: 'rgba(153, 102, 255, 1)',
                 borderDash: [5, 5]
             }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2
         }
     });
 }

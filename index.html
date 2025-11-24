@@ -82,14 +82,6 @@
 
                 <!-- Charts Carousel -->
                 <div id="chartsCarousel" class="carousel slide mb-3" data-bs-ride="false">
-                    <div class="carousel-indicators">
-                        <button type="button" data-bs-target="#chartsCarousel" data-bs-slide-to="0" class="active"
-                            aria-current="true" aria-label="Daily Balance"></button>
-                        <button type="button" data-bs-target="#chartsCarousel" data-bs-slide-to="1"
-                            aria-label="Expense Breakdown"></button>
-                        <button type="button" data-bs-target="#chartsCarousel" data-bs-slide-to="2"
-                            aria-label="Time to Target"></button>
-                    </div>
                     <div class="carousel-inner">
                         <!-- Slide 1: Daily Balance -->
                         <div class="carousel-item active">
@@ -126,15 +118,25 @@
                             </div>
                         </div>
                     </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#chartsCarousel"
-                        data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
+                </div>
+
+                <!-- Carousel Controls Bar -->
+                <div class="d-flex justify-content-center align-items-center gap-3 mb-3">
+                    <button class="btn btn-sm btn-outline-secondary carousel-nav-btn" type="button"
+                        data-bs-target="#chartsCarousel" data-bs-slide="prev">
+                        <i class="bi bi-chevron-left"></i>
                     </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#chartsCarousel"
-                        data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
+                    <div class="carousel-indicators position-static m-0">
+                        <button type="button" data-bs-target="#chartsCarousel" data-bs-slide-to="0" class="active"
+                            aria-current="true" aria-label="Daily Balance"></button>
+                        <button type="button" data-bs-target="#chartsCarousel" data-bs-slide-to="1"
+                            aria-label="Expense Breakdown"></button>
+                        <button type="button" data-bs-target="#chartsCarousel" data-bs-slide-to="2"
+                            aria-label="Time to Target"></button>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary carousel-nav-btn" type="button"
+                        data-bs-target="#chartsCarousel" data-bs-slide="next">
+                        <i class="bi bi-chevron-right"></i>
                     </button>
                 </div>
 
@@ -314,16 +316,12 @@
                                             <label for="field-test-notes" class="form-label">Notes</label>
                                             <textarea class="form-control" id="field-test-notes" rows="8"
                                                 placeholder="Add your field test notes here... bugs, improvements, ideas, etc."></textarea>
-                                            <div class="form-text">These notes are saved automatically when you save
-                                                settings.</div>
                                         </div>
+                                        <button type="button" class="btn btn-primary" id="save-notes-btn">Save
+                                            Notes</button>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="button" class="btn btn-primary" id="save-settings-btn">Save Settings</button>
                         </div>
                     </div>
                 </div>
@@ -451,11 +449,13 @@
     <script src="js/app.js?v=2.1" type="module"></script>
     <script>
         // Service Worker commented out for development
+        /*
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
                 .then(reg => console.log('Service Worker registered'))
                 .catch(err => console.log('Service Worker registration failed', err));
         }
+        */
     </script>
 </body>
 

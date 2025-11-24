@@ -215,6 +215,13 @@
                         <div id="collapseRecurringIncome" class="accordion-collapse collapse" aria-labelledby="headingRecurringIncome" data-bs-parent="#settingsAccordion">
                             <div class="accordion-body">
                                 <div id="recurring-incomes-list" class="mb-3"></div>
+                                <div class="input-group">
+                                    <span class="input-group-text">🗓️</span>
+                                    <input type="number" id="recurring-income-day-input" class="form-control" placeholder="Day (1-31)" min="1" max="31">
+                                    <span class="input-group-text">💰</span>
+                                    <input type="number" id="recurring-income-amount-input" class="form-control" placeholder="Amount">
+                                    <span class="action-emoji" onclick="addRecurringIncome()">➕</span>
+                                </div>
                             </div>
                         </div>
                     </div>

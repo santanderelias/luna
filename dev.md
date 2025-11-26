@@ -286,3 +286,8 @@ Daily Net Change =
      - Remove unclear auto-save on blur.
      - Add explicit "Save" or "Update" buttons (similar to Recurring Income input group pattern).
      - Provide clear feedback when saved.
+
+5. **Make app a TWA (Trusted Web Activity)**
+   - Convert the PWA into a Trusted Web Activity for Play Store distribution.
+   - Configure Digital Asset Links.
+   - Generate signed APK/AAB.

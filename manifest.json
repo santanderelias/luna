@@ -1,11 +1,11 @@
 {
-  "name": "Luna v2",
-  "short_name": "Luna v2",
+  "name": "Luna",
+  "short_name": "Luna",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0d6efd",
-  "description": "A simple personal finance tracker v2.",
+  "description": "A simple personal finance tracker.",
   "icons": [
     {
       "src": "res/icon-192x192.png",

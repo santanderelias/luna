@@ -1,20 +1,23 @@
-const CACHE_NAME = 'luna-cache-v1.1';
+const CACHE_NAME = 'luna-cache-v1.03';
 const ASSETS_TO_CACHE = [
-    'https://santanderelias.github.io/luna/',
-    'https://santanderelias.github.io/luna/index.html',
-    'https://santanderelias.github.io/luna/css/style.css',
-    'https://santanderelias.github.io/luna/js/app.js',
-    'https://santanderelias.github.io/luna/js/ui.js',
-    'https://santanderelias.github.io/luna/js/storage.js',
-    'https://santanderelias.github.io/luna/js/charts.js',
-    'https://santanderelias.github.io/luna/js/calculator.js',
-    'https://santanderelias.github.io/luna/manifest.json',
-    'https://santanderelias.github.io/luna/vendor/css/bootstrap.min.css',
-    'https://santanderelias.github.io/luna/vendor/css/bootstrap-icons.css',
-    'https://santanderelias.github.io/luna/vendor/js/bootstrap.bundle.min.js',
-    'https://santanderelias.github.io/luna/vendor/js/chart.js',
-    'https://santanderelias.github.io/luna/vendor/fonts/bootstrap-icons.woff2',
-    'https://santanderelias.github.io/luna/vendor/fonts/bootstrap-icons.woff'
+    './',
+    './index.html',
+    './css/style.css',
+    './js/app.js',
+    './js/ui.js',
+    './js/storage.js',
+    './js/charts.js',
+    './js/calculator.js',
+    './manifest.json',
+    './favicon.ico',
+    './vendor/css/bootstrap.min.css',
+    './vendor/css/bootstrap-icons.css',
+    './vendor/js/bootstrap.bundle.min.js',
+    './vendor/js/chart.js',
+    './vendor/fonts/bootstrap-icons.woff2',
+    './vendor/fonts/bootstrap-icons.woff',
+    './res/icon-192x192.png',
+    './res/icon-512x512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -42,7 +45,7 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
     event.respondWith(
-        caches.match(event.request)
+        caches.match(event.request, { ignoreSearch: true })
             .then((response) => response || fetch(event.request))
     );
 });

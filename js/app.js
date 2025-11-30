@@ -1,7 +1,7 @@
 import { saveDB, loadDB } from './storage.js';
 import { renderTransactions } from './ui.js';
-import { renderCharts } from './charts.js';
-import { calculateBalance, calculateProjections, formatCurrency } from './calculator.js';
+// import { renderCharts } from './charts.js'; // Charts removed from UI
+import { calculateBalance, calculateSmartStats, predictFuture, generateInsights, formatCurrency } from './calculator.js';
 
 // Global state
 let state = {
@@ -138,7 +138,17 @@ function initializeElements() {
         searchInput: getEl('search-input'),
         filterCategory: getEl('filter-category'),
         customCategoryInput: getEl('custom-category'),
-        editCustomCategoryInput: getEl('edit-custom-category')
+        customCategoryInput: getEl('custom-category'),
+        editCustomCategoryInput: getEl('edit-custom-category'),
+
+        // New Stats Elements
+        projectedEomDisplay: getEl('projected-eom-display'),
+        timeToTargetDisplay: getEl('time-to-target-display'),
+        burnRateDisplay: getEl('burn-rate-display'),
+        cashFlowDisplay: getEl('cash-flow-display'),
+        savingsRateDisplay: getEl('savings-rate-display'),
+        insightsStream: getEl('insights-stream'),
+        eomCard: getEl('eom-card')
     };
 
     console.log('Elements initialized:', elements);
@@ -380,35 +390,113 @@ function switchTab(tabId) {
 
     // Trigger specific renders if needed
     if (tabId === 'tab-stats') {
-        renderCharts(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses);
-        updateProjections();
+        // renderCharts(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses); // Charts removed
+        updateStatsAndInsights();
     }
     // Removed loadSettings() call - settings are now auto-saved
 }
 
-function updateProjections() {
-    const projections = calculateProjections(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses);
+function updateStatsAndInsights() {
+    // 1. Calculate Smart Stats
+    const stats = calculateSmartStats(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses);
 
-    // Add disclaimer for 'This Month'
-    const spentPerDayLabel = document.querySelector('#spent-per-day').previousElementSibling;
-    if (state.timeRange === 'this-month') {
-        spentPerDayLabel.innerHTML = 'Spent Per Day <small class="text-muted" style="font-size: 0.6em;">*This Month</small>';
+    // 2. Predict Future
+    // We need the current total balance for predictions.
+    // Note: state.settings.currentBalance is the *initial* balance.
+    // Actual Current Balance = Initial + Transactions Sum
+    const currentTotalBalance = state.settings.currentBalance + calculateBalance(state.transactions);
+    const predictions = predictFuture(currentTotalBalance, stats, state.settings, state.includeFixedExpenses);
+
+    // 3. Generate Insights
+    const insights = generateInsights(stats, predictions, state.settings);
+
+    // 4. Render UI
+
+    // Update Labels based on toggle
+    const burnRateLabel = elements.burnRateDisplay.previousElementSibling;
+    const cashFlowLabel = elements.cashFlowDisplay.previousElementSibling;
+
+    if (state.includeFixedExpenses) {
+        burnRateLabel.innerHTML = 'Burn Rate <small class="text-muted" style="font-size: 0.7em;">(incl. Fixed)</small>';
+        cashFlowLabel.innerHTML = 'Cash Flow <small class="text-muted" style="font-size: 0.7em;">(incl. Fixed)</small>';
     } else {
-        spentPerDayLabel.textContent = 'Spent Per Day';
+        burnRateLabel.innerHTML = 'Burn Rate <small class="text-muted" style="font-size: 0.7em;">(excl. Fixed)</small>';
+        cashFlowLabel.innerHTML = 'Cash Flow <small class="text-muted" style="font-size: 0.7em;">(excl. Fixed)</small>';
     }
 
-    document.getElementById('spend-to-date').textContent = formatCurrency(projections.spendToDate, state.settings);
-    document.getElementById('spent-per-day').textContent = formatCurrency(projections.spentPerDay, state.settings);
+    // EOM Card
+    elements.projectedEomDisplay.textContent = formatCurrency(predictions.projectedEOMBalance, state.settings);
+    elements.timeToTargetDisplay.textContent = `Goal: ${predictions.timeToTarget}`;
 
-    // Only show monthly projections if 'this-month'
-    if (state.timeRange === 'this-month') {
-        document.getElementById('monthly-spent-projection').textContent = formatCurrency(projections.monthlySpentProjection, state.settings);
-        document.getElementById('net-monthly-projection').textContent = formatCurrency(projections.netMonthlyProjection, state.settings);
-        document.getElementById('time-to-reach-target').textContent = projections.timeToReachTarget;
+    // Color code EOM card
+    if (predictions.projectedEOMBalance < 0) {
+        elements.eomCard.classList.remove('bg-gradient-primary', 'bg-gradient-success');
+        elements.eomCard.classList.add('bg-gradient-danger');
     } else {
-        document.getElementById('monthly-spent-projection').textContent = '-';
-        document.getElementById('net-monthly-projection').textContent = '-';
-        document.getElementById('time-to-reach-target').textContent = '-';
+        elements.eomCard.classList.remove('bg-gradient-danger', 'bg-gradient-success');
+        elements.eomCard.classList.add('bg-gradient-primary');
+    }
+
+    // Metrics
+    elements.burnRateDisplay.textContent = formatCurrency(stats.burnRate, state.settings) + '/day';
+    elements.cashFlowDisplay.textContent = formatCurrency(stats.cashFlow, state.settings);
+
+    // Color code Cash Flow
+    if (stats.cashFlow >= 0) {
+        elements.cashFlowDisplay.classList.remove('text-danger');
+        elements.cashFlowDisplay.classList.add('text-success');
+    } else {
+        elements.cashFlowDisplay.classList.remove('text-success');
+        elements.cashFlowDisplay.classList.add('text-danger');
+    }
+
+    elements.savingsRateDisplay.textContent = stats.savingsRate.toFixed(1) + '%';
+
+    // Insights Stream
+    elements.insightsStream.innerHTML = '';
+    if (insights.length === 0) {
+        elements.insightsStream.innerHTML = '<div class="text-muted small text-center">No insights available yet.</div>';
+    } else {
+        insights.forEach(insight => {
+            const div = document.createElement('div');
+            // Map insight types to Bootstrap colors
+            let bgClass = 'bg-light';
+            let borderClass = 'border-light';
+            let iconColor = 'text-primary';
+
+            if (insight.type === 'danger') {
+                bgClass = 'bg-danger-subtle'; // Bootstrap 5.3+
+                borderClass = 'border-danger-subtle';
+                iconColor = 'text-danger';
+            } else if (insight.type === 'warning') {
+                bgClass = 'bg-warning-subtle';
+                borderClass = 'border-warning-subtle';
+                iconColor = 'text-warning';
+            } else if (insight.type === 'success') {
+                bgClass = 'bg-success-subtle';
+                borderClass = 'border-success-subtle';
+                iconColor = 'text-success';
+            } else if (insight.type === 'info') {
+                bgClass = 'bg-info-subtle';
+                borderClass = 'border-info-subtle';
+                iconColor = 'text-info';
+            }
+
+            // Fallback for older Bootstrap if subtle classes don't exist (using custom styles or standard alerts)
+            // Let's use a custom card style for insights
+            div.className = `card border-start border-4 ${borderClass}`;
+            // Hack: using style for border color mapping if classes fail, but let's try classes first.
+            // Actually, let's just use simple alert-like styling
+            div.className = `alert ${insight.type === 'danger' ? 'alert-danger' : insight.type === 'warning' ? 'alert-warning' : insight.type === 'success' ? 'alert-success' : 'alert-info'} d-flex align-items-center mb-0 py-2`;
+
+            div.innerHTML = `
+                <i class="bi ${insight.icon} fs-4 me-3"></i>
+                <div>
+                    <div class="small">${insight.text}</div>
+                </div>
+            `;
+            elements.insightsStream.appendChild(div);
+        });
     }
 }
 
@@ -635,7 +723,8 @@ function init() {
     updateCategoryOptions();
 
     // Initial Chart Render
-    renderCharts(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses);
+    // Initial Chart Render
+    // renderCharts(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses); // Charts removed
 
     // Event Listeners
     if (elements.addExpenseBtn) elements.addExpenseBtn.addEventListener('click', () => addTransaction('expense'));
@@ -682,7 +771,7 @@ function init() {
 
             // Update state and re-render
             state.timeRange = e.target.dataset.range;
-            renderCharts(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses);
+            // renderCharts(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses); // Charts removed
             updateProjections();
         });
     });
@@ -692,7 +781,7 @@ function init() {
     if (fixedExpensesToggle) {
         fixedExpensesToggle.addEventListener('change', (e) => {
             state.includeFixedExpenses = e.target.checked;
-            renderCharts(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses);
+            // renderCharts(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses); // Charts removed
             updateProjections();
         });
     }

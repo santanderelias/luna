@@ -1,9 +1,3 @@
-export function calculateBalance(transactions) {
-    return transactions.reduce((total, t) => {
-        return t.type === 'income' ? total + t.amount : total - t.amount;
-    }, 0);
-}
-
 export function formatCurrency(amount, settings) {
     if (settings.useThousandsSuffix && Math.abs(amount) >= 1000) {
         return '$' + (amount / 1000).toFixed(1) + 'k';
@@ -11,185 +5,239 @@ export function formatCurrency(amount, settings) {
     return '$' + amount.toFixed(2);
 }
 
-function getTransactionsInDateRange(transactions, timeRange) {
-    const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
-
-    return transactions.filter(t => {
-        const tDate = new Date(t.date);
-        // Fix for local date parsing if needed, but assuming YYYY-MM-DD string comparison is safer for boundaries
-        const [tY, tM, tD] = t.date.split('-').map(Number);
-
-        if (timeRange === 'this-month') {
-            return tY === currentYear && (tM - 1) === currentMonth;
-        } else if (timeRange === 'last-month') {
-            const lastMonthDate = new Date(currentYear, currentMonth - 1, 1);
-            const lastMonth = lastMonthDate.getMonth();
-            const lastMonthYear = lastMonthDate.getFullYear();
-            return tY === lastMonthYear && (tM - 1) === lastMonth;
-        } else if (timeRange === 'all-time') {
-            return true;
-        }
-        return true;
-    });
+export function calculateBalance(transactions) {
+    return transactions.reduce((total, t) => {
+        return t.type === 'income' ? total + t.amount : total - t.amount;
+    }, 0);
 }
 
-export function calculateProjections(transactions, settings, timeRange = 'this-month', includeFixedExpenses = true) {
+/**
+ * Calculates "Smart Stats" for a given time range.
+ * Focuses on Cash Flow, Burn Rate, and Savings Rate.
+ */
+export function calculateSmartStats(transactions, settings, timeRange = 'this-month', includeFixedExpenses = true) {
     const today = new Date();
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
-    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const currentDay = today.getDate();
 
-    // Filter transactions based on time range
-    const filteredTransactions = getTransactionsInDateRange(transactions, timeRange);
+    // Filter transactions for the period
+    const filteredTransactions = transactions.filter(t => {
+        const [tY, tM, tD] = t.date.split('-').map(Number);
+        if (timeRange === 'this-month') {
+            return tY === currentYear && (tM - 1) === currentMonth;
+        }
+        // Add other ranges if needed, but focusing on 'this-month' for smart stats usually makes most sense for "Burn Rate"
+        return true;
+    });
 
-    // 1. Spend to Date (in selected range)
-    let spendToDate = 0;
+    let totalIncome = 0;
+    let totalExpenses = 0;
+
     filteredTransactions.forEach(t => {
-        if (t.type === 'expense') {
-            spendToDate += t.amount;
+        if (t.type === 'income') {
+            totalIncome += t.amount;
+        } else {
+            totalExpenses += t.amount;
         }
     });
 
-    // 2. Spent Per Day (Active Spending Days)
-    // Count days where at least one expense occurred
-    const activeDays = new Set();
-    filteredTransactions.forEach(t => {
-        if (t.type === 'expense') {
-            activeDays.add(t.date);
-        }
-    });
+    // Define daysPassed once, before fixed expenses calculation
+    const daysPassed = timeRange === 'this-month' ? Math.max(1, currentDay) : 1;
 
-    const numberOfActiveDays = activeDays.size;
-    const spentPerDay = numberOfActiveDays > 0 ? spendToDate / numberOfActiveDays : 0;
+    // Add Fixed Expenses if requested
+    let fixedExpensesTotal = 0;
+    if (includeFixedExpenses && settings.fixedExpenses) {
+        // Calculate daily portion of fixed expenses for the days passed?
+        // Or just add the full monthly amount if we are looking at "Cash Flow" for the month?
+        // For "Burn Rate" (Daily Spend), we definitely want the daily average.
+        // For "Cash Flow" (Net Position), usually we want (Income - Expenses).
+        // If we only include "days passed" portion of fixed expenses, it might look artificially positive early in the month.
+        // Let's assume for "Cash Flow" we want to see the *impact* of fixed expenses on the *current* state.
+        // But wait, "Cash Flow" is usually "Money In - Money Out".
+        // If the bill hasn't been paid yet (no transaction), it's not "Out" yet.
+        // HOWEVER, the user wants to see stats *including* fixed expenses.
+        // If we just add them, we might double count if they also added a transaction for it.
+        // We don't have a link between transactions and fixed expenses.
+        // COMPROMISE: "Smart Stats" usually implies "Projected" or "Effective" stats.
+        // Let's add the *daily average* of fixed expenses to the expenses for the days passed.
+        // This smooths out the "lumpy" bills.
 
-    // 3. Monthly Spent Projection (Only valid for 'this-month')
-    let monthlySpentProjection = 0;
-    let netMonthlyProjection = 0;
-    let timeToReachTarget = 'N/A';
+        const monthlyFixed = settings.fixedExpenses.reduce((sum, e) => sum + e.amount, 0);
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const dailyFixed = monthlyFixed / daysInMonth;
 
-    if (timeRange === 'this-month') {
-        const totalFixedExpenses = includeFixedExpenses ? settings.fixedExpenses.reduce((sum, e) => sum + e.amount, 0) : 0;
-        // Projection based on active daily spend * remaining days? 
-        // Or just average daily spend * total days?
-        // Let's stick to average daily spend * total days for simplicity and consistency with previous logic,
-        // but using the new "active" average might inflate it if they only spend on weekends.
-        // User asked for "days passed minus days with no spent cash" -> active days.
-        // "divided by amount used" -> actually amount / active days.
-        // So spentPerDay is correct.
-
-        // If we project using this "active" rate, we assume they will spend EVERY day remaining?
-        // Or should we assume they will spend on the same proportion of days?
-        // Let's keep it simple: Rate * Days in Month + Fixed.
-        monthlySpentProjection = (spentPerDay * daysInMonth) + totalFixedExpenses;
-
-        // 4. Net Monthly Projection
-        const monthlyRecurringIncome = settings.recurringIncomes.reduce((sum, i) => sum + i.amount, 0);
-        netMonthlyProjection = monthlyRecurringIncome - monthlySpentProjection;
-
-        // 5. Time to Reach Target
-        const currentBalance = settings.currentBalance + calculateBalance(transactions);
-
-        if (settings.targetCash > 0 && netMonthlyProjection > 0 && currentBalance < settings.targetCash) {
-            const months = (settings.targetCash - currentBalance) / netMonthlyProjection;
-            timeToReachTarget = Math.ceil(months) + ' months';
-
-            if (settings.targetDate) {
-                const targetDateObj = new Date(settings.targetDate);
-                const diffTime = targetDateObj - today;
-                const diffMonths = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30));
-
-                if (diffMonths < months) {
-                    timeToReachTarget += ` (Late by ${Math.ceil(months - diffMonths)} months)`;
-                } else {
-                    timeToReachTarget += ` (On track)`;
-                }
-            }
-        }
+        fixedExpensesTotal = dailyFixed * daysPassed;
     }
 
+    totalExpenses += fixedExpensesTotal;
+
+    const cashFlow = totalIncome - totalExpenses;
+
+    // Savings Rate
+    const savingsRate = totalIncome > 0 ? (cashFlow / totalIncome) * 100 : 0;
+
+    // Burn Rate (Daily Spend)
+    // For 'this-month', divide by days passed so far.
+    const burnRate = totalExpenses / daysPassed;
+
     return {
-        spendToDate,
-        spentPerDay,
-        monthlySpentProjection,
-        netMonthlyProjection,
-        timeToReachTarget,
-        numberOfActiveDays // Exported for potential UI use
+        totalIncome,
+        totalExpenses,
+        cashFlow,
+        savingsRate,
+        burnRate,
+        daysPassed
     };
 }
 
-export function getDailyBalances(transactions, settings, timeRange = 'this-month', includeFixedExpenses = true) {
+/**
+ * Predicts future financial state based on current trends.
+ */
+export function predictFuture(currentTotalBalance, stats, settings, includeFixedExpenses = true) {
     const today = new Date();
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
+    const currentDay = today.getDate();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const daysRemaining = daysInMonth - currentDay;
 
-    let startDate, endDate;
+    // 1. Projected End-of-Month Balance
+    // Start with current actual balance (wallet + bank etc)
+    // Add remaining recurring income
+    // Subtract projected spend (Burn Rate * Days Remaining)
 
-    if (timeRange === 'this-month') {
-        startDate = new Date(currentYear, currentMonth, 1);
-        endDate = new Date(currentYear, currentMonth + 1, 0);
-    } else if (timeRange === 'last-month') {
-        startDate = new Date(currentYear, currentMonth - 1, 1);
-        endDate = new Date(currentYear, currentMonth, 0);
-    } else {
-        // All time: Start from first transaction or reasonable default
-        if (transactions.length > 0) {
-            const sorted = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
-            startDate = new Date(sorted[0].date);
-        } else {
-            startDate = new Date(currentYear, currentMonth, 1);
-        }
-        endDate = today;
-    }
-
-    // Calculate total days in range
-    const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
-
-    // Calculate daily average for fixed expenses
-    const totalFixedExpenses = includeFixedExpenses ? settings.fixedExpenses.reduce((sum, e) => sum + e.amount, 0) : 0;
-    const dailyFixedExpense = totalFixedExpenses / totalDays;
-
-    // Calculate daily average for recurring incomes
-    const totalRecurringIncome = settings.recurringIncomes.reduce((sum, i) => sum + i.amount, 0);
-    const dailyRecurringIncome = totalRecurringIncome / totalDays;
-
-    let dailyNetChanges = [];
-    let labels = [];
-
-    // Iterate from startDate to endDate
-    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-        const day = d.getDate();
-        const month = d.getMonth();
-        const year = d.getFullYear();
-        const dateStr = d.toISOString().split('T')[0];
-
-        let dayIncome = 0;
-        let dayExpense = 0;
-
-        // Add daily averaged recurring income
-        dayIncome += dailyRecurringIncome;
-
-        // Add daily averaged fixed expenses
-        dayExpense += dailyFixedExpense;
-
-        // Add transactions for this day
-        transactions.forEach(t => {
-            if (t.date === dateStr) {
-                if (t.type === 'income') {
-                    dayIncome += t.amount;
-                } else {
-                    dayExpense += t.amount;
-                }
+    let remainingRecurringIncome = 0;
+    if (settings.recurringIncomes) {
+        settings.recurringIncomes.forEach(inc => {
+            if (inc.day > currentDay) {
+                remainingRecurringIncome += inc.amount;
             }
         });
-
-        // Calculate net change for the day (positive = gained money, negative = lost money)
-        const netChange = dayIncome - dayExpense;
-
-        dailyNetChanges.push(netChange);
-        labels.push(`${month + 1}/${day}`);
     }
 
-    return { labels, data: dailyNetChanges };
+    // We assume fixed expenses are included in the "Burn Rate" if they happen daily/regularly,
+    // OR we should subtract specific remaining fixed expenses if we knew their dates.
+    // Since we don't have dates for fixed expenses, let's rely on the Burn Rate to approximate "spending momentum".
+    // However, Burn Rate might be low if a big rent payment hasn't happened yet.
+    // This is a limitation of the current data model.
+    // IMPROVEMENT: Let's assume Burn Rate covers "variable" spend, and we might miss "lumpy" fixed expenses.
+    // For now, simple projection:
+
+    // Projected Spend
+    // If includeFixedExpenses is true, stats.burnRate ALREADY includes the daily portion of fixed expenses.
+    // So (burnRate * daysRemaining) will project the remaining variable AND fixed expenses.
+    // This assumes fixed expenses are spread out evenly.
+    // If includeFixedExpenses is false, stats.burnRate is just variable spend.
+    // So (burnRate * daysRemaining) is just remaining variable spend.
+    // This seems consistent with what the user wants: "Show me stats with/without fixed expenses".
+
+    const projectedSpend = stats.burnRate * daysRemaining;
+    const projectedEOMBalance = currentTotalBalance + remainingRecurringIncome - projectedSpend;
+
+    // 2. Realistic Time-to-Target
+    // Use the projected monthly savings (Net Position at EOM) to estimate.
+    // Projected Monthly Savings = Projected EOM Balance - Start of Month Balance?
+    // Actually, simpler: Projected Monthly Net = (Total Income + Remaining Recurring) - (Total Expenses + Projected Spend)
+    // Wait, Total Income includes recurring that already happened.
+
+    const projectedMonthlyIncome = stats.totalIncome + remainingRecurringIncome;
+    const projectedMonthlyExpenses = stats.totalExpenses + projectedSpend;
+    const projectedMonthlyNet = projectedMonthlyIncome - projectedMonthlyExpenses;
+
+    let timeToTarget = 'N/A';
+    let monthsToTarget = Infinity;
+
+    if (settings.targetCash > currentTotalBalance) {
+        if (projectedMonthlyNet > 0) {
+            const remainingAmount = settings.targetCash - currentTotalBalance;
+            monthsToTarget = remainingAmount / projectedMonthlyNet;
+
+            if (monthsToTarget < 1) {
+                timeToTarget = '< 1 Month';
+            } else {
+                timeToTarget = Math.ceil(monthsToTarget) + ' Months';
+            }
+        } else {
+            timeToTarget = 'Never (Negative Flow)';
+        }
+    } else if (settings.targetCash > 0 && currentTotalBalance >= settings.targetCash) {
+        timeToTarget = 'Goal Reached! 🎉';
+    }
+
+    return {
+        projectedEOMBalance,
+        projectedMonthlyNet,
+        timeToTarget,
+        daysRemaining
+    };
+}
+
+/**
+ * Generates actionable insights and advice.
+ */
+export function generateInsights(stats, predictions, settings) {
+    const insights = [];
+
+    // 1. Cash Flow Alert
+    if (stats.cashFlow < 0) {
+        insights.push({
+            type: 'danger',
+            icon: 'bi-exclamation-triangle',
+            text: `You are currently spending more than you earn (-$${Math.abs(stats.cashFlow).toFixed(0)}).`
+        });
+    } else {
+        insights.push({
+            type: 'success',
+            icon: 'bi-graph-up-arrow',
+            text: `Positive cash flow! You're up $${stats.cashFlow.toFixed(0)} this month.`
+        });
+    }
+
+    // 2. Burn Rate Context
+    // Compare burn rate to "Safe Burn Rate" (Income / Days in Month)?
+    // If we assume total monthly income is roughly (Current Income + Remaining Recurring)
+    // Safe Daily Spend = (Total Expected Income - Target Savings?) / Days in Month
+    // Let's keep it simple:
+    if (stats.burnRate > 100) { // Arbitrary threshold for now, or maybe based on income?
+        // Let's make it relative to income if possible.
+        if (stats.totalIncome > 0) {
+            const dailyIncome = stats.totalIncome / stats.daysPassed;
+            if (stats.burnRate > dailyIncome) {
+                insights.push({
+                    type: 'warning',
+                    icon: 'bi-fire',
+                    text: `High Burn Rate! You're spending $${stats.burnRate.toFixed(0)}/day, which is higher than your daily income.`
+                });
+            }
+        }
+    }
+
+    // 3. EOM Projection
+    if (predictions.projectedEOMBalance < 0) {
+        insights.push({
+            type: 'danger',
+            icon: 'bi-wallet2',
+            text: `Warning: At this rate, you might end the month with a negative balance ($${predictions.projectedEOMBalance.toFixed(0)}).`
+        });
+    }
+
+    // 4. Savings Rate
+    if (stats.savingsRate > 20) {
+        insights.push({
+            type: 'success',
+            icon: 'bi-piggy-bank',
+            text: `Great job! You're saving ${stats.savingsRate.toFixed(1)}% of your income.`
+        });
+    } else if (stats.savingsRate < 0) {
+        // Already covered by cash flow negative usually
+    } else if (stats.savingsRate < 5) {
+        insights.push({
+            type: 'info',
+            icon: 'bi-lightbulb',
+            text: `Tip: Try to increase your savings rate. Currently at ${stats.savingsRate.toFixed(1)}%.`
+        });
+    }
+
+    return insights;
 }

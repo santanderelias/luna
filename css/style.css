@@ -209,135 +209,53 @@ body {
     border-radius: 0.25rem;
 }
 
-/* Carousel - Remove default controls */
-.carousel-control-prev,
-.carousel-control-next {
-    display: none !important;
+/* Charts Removed */
+
+/* Smart Stats UI */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
 }
 
-/* Carousel Navigation Buttons */
-.carousel-nav-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border: 2px solid #6c757d;
+.bg-gradient-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
 }
 
-.carousel-nav-btn:hover {
-    background-color: #6c757d;
-    border-color: #6c757d;
-    color: white;
+.bg-gradient-success {
+    background: linear-gradient(135deg, #198754 0%, #20c997 100%);
 }
 
-.carousel-nav-btn i {
-    font-size: 1.2rem;
+#eom-card {
+    border: none;
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
 }
 
-/* Carousel Indicators */
-.carousel-indicators {
-    position: static;
-    margin: 0;
-    margin-bottom: 0;
-    z-index: 10;
+#insights-stream .alert {
+    border: none;
+    border-left: 4px solid;
 }
 
-.carousel-indicators [data-bs-target] {
-    background-color: #6c757d;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    opacity: 0.5;
-    border: 2px solid #6c757d;
-    cursor: pointer;
-    margin: 0 4px;
+#insights-stream .alert-danger {
+    border-left-color: #dc3545;
+    background-color: #fff5f5;
+    color: #842029;
 }
 
-.carousel-indicators .active {
-    opacity: 1;
-    background-color: #0d6efd;
-    border-color: #0d6efd;
+#insights-stream .alert-warning {
+    border-left-color: #ffc107;
+    background-color: #fffbf0;
+    color: #664d03;
 }
 
-/* Chart Container - Fixed Height */
-.carousel-item .card {
-    height: 450px;
+#insights-stream .alert-success {
+    border-left-color: #198754;
+    background-color: #f0fff4;
+    color: #0f5132;
 }
 
-.carousel-item .card-body {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.carousel-item canvas {
-    max-width: 100%;
-    height: auto !important;
-    flex: 1;
-}
-
-/* Mobile Responsive */
-@media (max-width: 576px) {
-    .carousel-item .card {
-        height: 400px;
-    }
-
-    .carousel-nav-btn {
-        width: 36px;
-        height: 36px;
-    }
-
-    .carousel-nav-btn i {
-        font-size: 1rem;
-    }
-}
-
-/* Filters Bar - Sticky */
-#statistics .card:first-child {
-    position: sticky;
-    top: -1px;
-    z-index: 100;
-    margin-top: 0;
-    margin-bottom: 1rem;
-    border-top: none;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-}
-
-/* Dropdown Menu - Higher z-index */
-.dropdown-menu {
-    z-index: 1050 !important;
-}
-
-/* Carousel - Lower z-index */
-#chartsCarousel {
-    position: relative;
-    z-index: 1;
-}
-
-/* Carousel Cards - Equal Height */
-.carousel-item .card {
-    min-height: 400px;
-}
-
-.carousel-item .card-body {
-    display: flex;
-    flex-direction: column;
-}
-
-.carousel-item canvas {
-    flex: 1;
-    max-height: 320px;
-}
-
-/* Pie Chart - Equal Height */
-.carousel-item .row {
-    flex: 1;
-    display: flex;
-    align-items: center;
+#insights-stream .alert-info {
+    border-left-color: #0dcaf0;
+    background-color: #f0faff;
+    color: #055160;
 }
 
 /* Toast Notifications */

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luna v2</title>
+    <title>Luna</title>
     <link href="vendor/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css?v=2.1">
     <link rel="stylesheet" href="vendor/css/bootstrap-icons.css">
@@ -80,94 +80,45 @@
                     </div>
                 </div>
 
-                <!-- Charts Carousel -->
-                <div id="chartsCarousel" class="carousel slide mb-3" data-bs-ride="false">
-                    <div class="carousel-inner">
-                        <!-- Slide 1: Daily Balance -->
-                        <div class="carousel-item active">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Daily Balance</h5>
-                                    <canvas id="daily-balance-chart"></canvas>
-                                </div>
+                <!-- Charts Removed -->
+
+                <!-- Smart Stats & Predictions -->
+                <div id="smart-stats-container">
+                    <!-- Projected EOM Card -->
+                    <div class="card mb-3 bg-gradient-primary text-white" id="eom-card">
+                        <div class="card-body text-center">
+                            <h6 class="card-subtitle mb-2 text-white-50">Projected EOM Balance</h6>
+                            <h2 class="card-title display-4 fw-bold" id="projected-eom-display">$0.00</h2>
+                            <p class="card-text small" id="time-to-target-display">Goal: N/A</p>
+                        </div>
+                    </div>
+
+                    <!-- Key Metrics Grid -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-4">
+                            <div class="card h-100 text-center py-2">
+                                <div class="small text-muted">Burn Rate</div>
+                                <div class="fw-bold" id="burn-rate-display">$0/day</div>
                             </div>
                         </div>
-                        <!-- Slide 2: Expense Breakdown -->
-                        <div class="carousel-item">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Expense Breakdown</h5>
-                                    <div class="row">
-                                        <div class="col-md-8">
-                                            <canvas id="expense-breakdown-chart"></canvas>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div id="expense-breakdown-list"></div>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="col-4">
+                            <div class="card h-100 text-center py-2">
+                                <div class="small text-muted">Cash Flow</div>
+                                <div class="fw-bold" id="cash-flow-display">$0</div>
                             </div>
                         </div>
-                        <!-- Slide 3: Time to Target -->
-                        <div class="carousel-item">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Time to Target</h5>
-                                    <canvas id="time-to-target-chart"></canvas>
-                                </div>
+                        <div class="col-4">
+                            <div class="card h-100 text-center py-2">
+                                <div class="small text-muted">Savings</div>
+                                <div class="fw-bold" id="savings-rate-display">0%</div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Carousel Controls Bar -->
-                <div class="d-flex justify-content-center align-items-center gap-3 mb-3">
-                    <button class="btn btn-sm btn-outline-secondary carousel-nav-btn" type="button"
-                        data-bs-target="#chartsCarousel" data-bs-slide="prev">
-                        <i class="bi bi-chevron-left"></i>
-                    </button>
-                    <div class="carousel-indicators position-static m-0">
-                        <button type="button" data-bs-target="#chartsCarousel" data-bs-slide-to="0" class="active"
-                            aria-current="true" aria-label="Daily Balance"></button>
-                        <button type="button" data-bs-target="#chartsCarousel" data-bs-slide-to="1"
-                            aria-label="Expense Breakdown"></button>
-                        <button type="button" data-bs-target="#chartsCarousel" data-bs-slide-to="2"
-                            aria-label="Time to Target"></button>
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary carousel-nav-btn" type="button"
-                        data-bs-target="#chartsCarousel" data-bs-slide="next">
-                        <i class="bi bi-chevron-right"></i>
-                    </button>
-                </div>
-
-                <!-- Projections / Vars -->
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Projections</h5>
-                        <table class="table table-sm">
-                            <tbody>
-                                <tr>
-                                    <td>Spend to Date (Month)</td>
-                                    <td id="spend-to-date">0.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Spent Per Day</td>
-                                    <td id="spent-per-day">0.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Monthly Spent Projection</td>
-                                    <td id="monthly-spent-projection">0.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Net Monthly Projection</td>
-                                    <td id="net-monthly-projection">0.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Time to Reach Target</td>
-                                    <td id="time-to-reach-target">N/A</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <!-- Insights Stream -->
+                    <h6 class="text-muted mb-2 ms-1">Insights</h6>
+                    <div id="insights-stream" class="d-flex flex-column gap-2">
+                        <!-- Insights will be injected here -->
                     </div>
                 </div>
             </section>

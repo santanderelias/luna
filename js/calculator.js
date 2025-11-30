@@ -42,30 +42,41 @@ export function calculateSmartStats(transactions, settings, timeRange = 'this-mo
         }
     });
 
-    // Define daysPassed once, before fixed expenses calculation
-    const daysPassed = timeRange === 'this-month' ? Math.max(1, currentDay) : 1;
+    // Determine "Active Period" start date
+    // If the user's first ever transaction was AFTER the start of this month, 
+    // we should use that as the start date for averaging to avoid skewing stats.
+    let startDate = 1; // Default to 1st of month
+
+    if (transactions.length > 0) {
+        // Find earliest transaction date
+        const sortedDates = transactions.map(t => new Date(t.date)).sort((a, b) => a - b);
+        const firstTransactionDate = sortedDates[0];
+
+        // Check if first transaction is in the current month and year
+        if (firstTransactionDate.getFullYear() === currentYear && firstTransactionDate.getMonth() === currentMonth) {
+            startDate = firstTransactionDate.getDate();
+        }
+    }
+
+    // Define daysPassed
+    // If timeRange is 'this-month', it's (Today - StartDate + 1)
+    // But max is currentDay (can't go into future)
+    // And min is 1
+    const daysActive = (currentDay - startDate) + 1;
+    const daysPassed = timeRange === 'this-month' ? Math.max(1, daysActive) : 1;
 
     // Add Fixed Expenses if requested
     let fixedExpensesTotal = 0;
     if (includeFixedExpenses && settings.fixedExpenses) {
-        // Calculate daily portion of fixed expenses for the days passed?
-        // Or just add the full monthly amount if we are looking at "Cash Flow" for the month?
-        // For "Burn Rate" (Daily Spend), we definitely want the daily average.
-        // For "Cash Flow" (Net Position), usually we want (Income - Expenses).
-        // If we only include "days passed" portion of fixed expenses, it might look artificially positive early in the month.
-        // Let's assume for "Cash Flow" we want to see the *impact* of fixed expenses on the *current* state.
-        // But wait, "Cash Flow" is usually "Money In - Money Out".
-        // If the bill hasn't been paid yet (no transaction), it's not "Out" yet.
-        // HOWEVER, the user wants to see stats *including* fixed expenses.
-        // If we just add them, we might double count if they also added a transaction for it.
-        // We don't have a link between transactions and fixed expenses.
-        // COMPROMISE: "Smart Stats" usually implies "Projected" or "Effective" stats.
-        // Let's add the *daily average* of fixed expenses to the expenses for the days passed.
-        // This smooths out the "lumpy" bills.
+        // ... (rest of logic remains similar, but we might want to adjust how we calculate the "daily" portion)
+        // If we are using a shorter "active period", should we include the full monthly fixed expenses?
+        // Probably not, we should probably scale it to the active period too for "Burn Rate".
+        // But for "Cash Flow" (Net Position), we probably want the full fixed expenses if they are due.
+        // Let's stick to the previous logic of "daily average * daysPassed" for consistency with the Burn Rate denominator.
 
         const monthlyFixed = settings.fixedExpenses.reduce((sum, e) => sum + e.amount, 0);
         const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-        const dailyFixed = monthlyFixed / daysInMonth;
+        const dailyFixed = monthlyFixed / daysInMonth; // Daily cost spread over real month
 
         fixedExpensesTotal = dailyFixed * daysPassed;
     }

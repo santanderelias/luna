@@ -33,7 +33,24 @@ body {
     height: 60px;
     /* Fixed height + safe area */
     box-sizing: content-box;
-    /* Ensure padding doesn't eat into height */
+}
+
+/* FAB Button */
+.fab-btn {
+    position: fixed;
+    bottom: 90px;
+    /* Above navbar (60px + padding) */
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.4);
+    z-index: 1050;
+    /* Higher than navbar (1030 usually) */
+    transition: transform 0.2s ease;
 }
 
 .navbar .container-fluid {
@@ -176,7 +193,7 @@ body {
 
 /* Remove top padding/margin for stats tab */
 #tab-stats {
-    margin-top: -1.5rem;
+    margin-top: 0;
 }
 
 #tab-stats #statistics {
@@ -222,6 +239,10 @@ body {
 
 .bg-gradient-success {
     background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+}
+
+.bg-gradient-purple {
+    background: linear-gradient(135deg, #6f42c1 0%, #a05cc9 100%);
 }
 
 #eom-card {

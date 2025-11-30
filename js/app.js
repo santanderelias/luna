@@ -7,7 +7,7 @@ import { calculateBalance, calculateSmartStats, predictFuture, generateInsights,
 let state = {
     transactions: [],
     settings: {
-        currentBalance: 0
+        balanceAdjustment: 0
     },
     timeRange: 'this-month',
     includeFixedExpenses: true
@@ -57,7 +57,7 @@ function handleSwipe() {
 
     if (Math.abs(swipeDistance) < SWIPE_THRESHOLD) return;
 
-    const tabs = ['tab-home', 'tab-stats', 'tab-add', 'tab-settings'];
+    const tabs = ['tab-stats', 'tab-transactions', 'tab-settings'];
     const currentTab = tabs.find(tab => !document.getElementById(tab).classList.contains('d-none'));
     const currentIndex = tabs.indexOf(currentTab);
 
@@ -83,12 +83,16 @@ function initializeElements() {
     };
 
     elements = {
-        addExpenseBtn: getEl('add-expense-btn'),
-        addIncomeBtn: getEl('add-income-btn'),
-        amountInput: getEl('amount'),
-        dateInput: getEl('transaction-date'),
-        descriptionInput: getEl('description'),
-        categoryInput: getEl('category'),
+        // Add Transaction Modal Elements
+        addModal: getModal('addTransactionModal'),
+        addAmountInput: getEl('add-amount'),
+        addDateInput: getEl('add-date'),
+        addDescriptionInput: getEl('add-description'),
+        addCategoryInput: getEl('add-category'),
+        addCustomCategoryInput: getEl('add-custom-category'),
+        saveTransactionBtn: getEl('save-transaction-btn'),
+        fabAddBtn: getEl('fab-add-btn'),
+
         transactionList: document.querySelector('#history .list-group'),
         saveNotesBtn: getEl('save-notes-btn'),
         currentBalanceInput: getEl('current-balance'),
@@ -171,8 +175,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 function updateBalance() {
-    const balance = calculateBalance(state.transactions) + state.settings.currentBalance;
-    elements.balanceDisplay.textContent = formatCurrency(balance, state.settings);
+    // Display Balance = Calculated Balance + Adjustment
+    const calculatedBalance = calculateBalance(state.transactions);
+    const displayBalance = calculatedBalance + (state.settings.balanceAdjustment || 0);
+    elements.balanceDisplay.textContent = formatCurrency(displayBalance, state.settings);
 }
 
 const DEFAULT_CATEGORIES = ['Food', 'Transport', 'Utilities', 'Entertainment', 'Health', 'Shopping', 'Other'];
@@ -180,7 +186,12 @@ const DEFAULT_CATEGORIES = ['Food', 'Transport', 'Utilities', 'Entertainment', '
 function getUniqueCategories() {
     const transactionCategories = new Set(state.transactions.map(t => t.category));
     const allCategories = new Set([...DEFAULT_CATEGORIES, ...transactionCategories]);
-    return Array.from(allCategories).sort();
+    // Sort alphabetically but keep 'Other' at the end
+    return Array.from(allCategories).sort((a, b) => {
+        if (a === 'Other') return 1;
+        if (b === 'Other') return -1;
+        return a.localeCompare(b);
+    });
 }
 
 function updateCategoryOptions() {
@@ -210,7 +221,7 @@ function updateCategoryOptions() {
         }
     };
 
-    populate(elements.categoryInput);
+    populate(elements.addCategoryInput);
     populate(elements.editCategoryInput);
 
     // Populate Filter
@@ -228,7 +239,7 @@ function updateCategoryOptions() {
 function handleCategoryChange(e) {
     const select = e.target;
     const isEdit = select.id === 'edit-category';
-    const customInput = isEdit ? elements.editCustomCategoryInput : elements.customCategoryInput;
+    const customInput = isEdit ? elements.editCustomCategoryInput : elements.addCustomCategoryInput;
 
     if (select.value === 'Other') {
         customInput.classList.remove('d-none');
@@ -238,17 +249,35 @@ function handleCategoryChange(e) {
     }
 }
 
-function addTransaction(type) {
-    const amount = parseFloat(elements.amountInput.value);
-    const description = elements.descriptionInput.value;
-    let category = elements.categoryInput.value;
-    const date = elements.dateInput.value;
+function openAddModal() {
+    // Reset fields
+    elements.addAmountInput.value = '';
+    elements.addDescriptionInput.value = '';
+    elements.addCategoryInput.value = '';
+    elements.addCustomCategoryInput.value = '';
+    elements.addCustomCategoryInput.classList.add('d-none');
+    elements.addDateInput.value = new Date().toISOString().split('T')[0];
+
+    // Reset Type to Expense
+    document.getElementById('type-expense').checked = true;
+
+    elements.addModal.show();
+}
+
+function saveTransaction() {
+    const amountVal = parseFloat(elements.addAmountInput.value);
+    const description = elements.addDescriptionInput.value;
+    let category = elements.addCategoryInput.value;
+    const date = elements.addDateInput.value;
+
+    // Determine Type
+    const type = document.getElementById('type-income').checked ? 'income' : 'expense';
 
     if (category === 'Other') {
-        category = elements.customCategoryInput.value.trim();
+        category = elements.addCustomCategoryInput.value.trim();
     }
 
-    if (!date || !amount || !description || !category) {
+    if (!date || !amountVal || !description || !category) {
         showToast('Please fill out all fields', 'warning');
         return;
     }
@@ -257,7 +286,7 @@ function addTransaction(type) {
         id: Date.now(),
         date,
         type,
-        amount,
+        amount: amountVal,
         description,
         category
     };
@@ -265,16 +294,75 @@ function addTransaction(type) {
     state.transactions.push(transaction);
     saveDB(state);
 
-    updateCategoryOptions(); // Update categories in case a new one was added
-    filterAndRenderTransactions(); // Render with current filters
+    updateCategoryOptions();
+    filterAndRenderTransactions();
     updateBalance();
+    updateStatsAndInsights(); // Ensure stats update
 
-    elements.amountInput.value = '';
-    elements.descriptionInput.value = '';
-    elements.categoryInput.value = '';
-    elements.customCategoryInput.value = '';
-    elements.customCategoryInput.classList.add('d-none');
-    // Keep date as is for convenience
+    elements.addModal.hide();
+}
+
+// Onboarding & Guidance Logic
+function checkOnboarding() {
+    // Check if critical settings are missing (Balance not set, no fixed expenses)
+    const hasBalance = state.settings.balanceAdjustment !== 0; // Simplified check
+    const hasFixedExpenses = state.settings.fixedExpenses && state.settings.fixedExpenses.length > 0;
+
+    if (!hasBalance && !hasFixedExpenses) {
+        // Trigger Guidance
+        triggerGuidanceFlow();
+    }
+}
+
+function triggerGuidanceFlow() {
+    // 1. Toast Advice
+    showToast('Welcome! Please set up your Balance and Fixed Expenses in Settings to get started.', 'info');
+
+    // 2. Glow Settings Tab
+    const settingsTabBtn = document.getElementById('nav-settings');
+    if (settingsTabBtn) {
+        settingsTabBtn.classList.add('glow-effect');
+
+        // Remove glow on click
+        const removeGlow = () => {
+            settingsTabBtn.classList.remove('glow-effect');
+            settingsTabBtn.removeEventListener('click', removeGlow);
+
+            // 3. Glow Balance Accordion (after a short delay to allow tab switch)
+            setTimeout(() => {
+                const balanceAccordionHeader = document.getElementById('headingBalance');
+                if (balanceAccordionHeader) {
+                    const button = balanceAccordionHeader.querySelector('button');
+                    button.classList.add('glow-effect');
+
+                    // Remove glow on click/expand
+                    const removeAccordionGlow = () => {
+                        button.classList.remove('glow-effect');
+                        button.removeEventListener('click', removeAccordionGlow);
+                    };
+                    button.addEventListener('click', removeAccordionGlow);
+                }
+            }, 300);
+        };
+        settingsTabBtn.addEventListener('click', removeGlow);
+    }
+
+    // 4. Pulse Inputs when Accordion Opens
+    const balanceCollapse = document.getElementById('collapseBalance');
+    if (balanceCollapse) {
+        balanceCollapse.addEventListener('shown.bs.collapse', () => {
+            const inputs = balanceCollapse.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.classList.add('pulse-effect');
+
+                // Remove pulse on focus
+                input.addEventListener('focus', function removePulse() {
+                    this.classList.remove('pulse-effect');
+                    this.removeEventListener('focus', removePulse);
+                });
+            });
+        });
+    }
 }
 
 function deleteTransaction(id) {
@@ -293,6 +381,13 @@ function editTransaction(id) {
     elements.editDateInput.value = transaction.date || new Date().toISOString().split('T')[0];
     elements.editAmountInput.value = transaction.amount;
     elements.editDescriptionInput.value = transaction.description;
+
+    // Handle Type
+    if (transaction.type === 'income') {
+        document.getElementById('edit-type-income').checked = true;
+    } else {
+        document.getElementById('edit-type-expense').checked = true;
+    }
 
     // Handle Category
     updateCategoryOptions(); // Ensure options are up to date
@@ -317,6 +412,9 @@ function saveEditedTransaction() {
     transaction.date = elements.editDateInput.value;
     transaction.amount = parseFloat(elements.editAmountInput.value);
     transaction.description = elements.editDescriptionInput.value;
+
+    // Determine Type
+    transaction.type = document.getElementById('edit-type-income').checked ? 'income' : 'expense';
 
     let category = elements.editCategoryInput.value;
     if (category === 'Other') {
@@ -388,6 +486,16 @@ function switchTab(tabId) {
         }
     });
 
+    // Collapse Settings Accordions when leaving settings tab
+    if (tabId !== 'tab-settings') {
+        document.querySelectorAll('.accordion-collapse.show').forEach(el => {
+            el.classList.remove('show');
+            // Also update the button state
+            const btn = document.querySelector(`[data-bs-target="#${el.id}"]`);
+            if (btn) btn.classList.add('collapsed');
+        });
+    }
+
     // Trigger specific renders if needed
     if (tabId === 'tab-stats') {
         // renderCharts(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses); // Charts removed
@@ -402,9 +510,8 @@ function updateStatsAndInsights() {
 
     // 2. Predict Future
     // We need the current total balance for predictions.
-    // Note: state.settings.currentBalance is the *initial* balance.
-    // Actual Current Balance = Initial + Transactions Sum
-    const currentTotalBalance = state.settings.currentBalance + calculateBalance(state.transactions);
+    // Actual Current Balance = Calculated Balance + Adjustment
+    const currentTotalBalance = calculateBalance(state.transactions) + (state.settings.balanceAdjustment || 0);
     const predictions = predictFuture(currentTotalBalance, stats, state.settings, state.includeFixedExpenses);
 
     // 3. Generate Insights
@@ -507,7 +614,13 @@ function saveNotes() {
 }
 
 function loadSettings() {
-    elements.currentBalanceInput.value = state.settings.currentBalance || 0;
+    // Calculate what the "User Balance" would be to display it
+    // User Balance = Calculated Balance + Adjustment
+    const calculated = calculateBalance(state.transactions);
+    const currentUserBalance = calculated + (state.settings.balanceAdjustment || 0);
+
+    elements.currentBalanceInput.value = currentUserBalance.toFixed(2);
+
     elements.targetCashInput.value = state.settings.targetCash || 0;
     elements.targetDateInput.value = state.settings.targetDate || '';
     elements.thousandsSuffixToggle.checked = state.settings.useThousandsSuffix || false;
@@ -713,9 +826,9 @@ function init() {
     state.settings = db.settings;
 
     // Set default date to today
-    if (elements.dateInput) {
-        elements.dateInput.value = new Date().toISOString().split('T')[0];
-    }
+    // if (elements.dateInput) {
+    //     elements.dateInput.value = new Date().toISOString().split('T')[0];
+    // }
 
     renderTransactions(state.transactions);
     loadSettings();
@@ -727,8 +840,17 @@ function init() {
     // renderCharts(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses); // Charts removed
 
     // Event Listeners
-    if (elements.addExpenseBtn) elements.addExpenseBtn.addEventListener('click', () => addTransaction('expense'));
-    if (elements.addIncomeBtn) elements.addIncomeBtn.addEventListener('click', () => addTransaction('income'));
+    if (elements.fabAddBtn) elements.fabAddBtn.addEventListener('click', openAddModal);
+
+    // Auto-focus input when modal is shown
+    const addModalEl = document.getElementById('addTransactionModal');
+    if (addModalEl) {
+        addModalEl.addEventListener('shown.bs.modal', () => {
+            if (elements.addAmountInput) elements.addAmountInput.focus();
+        });
+    }
+
+    if (elements.saveTransactionBtn) elements.saveTransactionBtn.addEventListener('click', saveTransaction);
     if (elements.transactionList) elements.transactionList.addEventListener('click', handleTransactionActions);
     if (elements.addRecurringIncomeBtn) elements.addRecurringIncomeBtn.addEventListener('click', addRecurringIncome);
     if (elements.addFixedExpenseBtn) elements.addFixedExpenseBtn.addEventListener('click', addFixedExpense);
@@ -744,7 +866,7 @@ function init() {
     if (elements.filterCategory) elements.filterCategory.addEventListener('change', filterAndRenderTransactions);
 
     // Dynamic Categories
-    if (elements.categoryInput) elements.categoryInput.addEventListener('change', handleCategoryChange);
+    if (elements.addCategoryInput) elements.addCategoryInput.addEventListener('change', handleCategoryChange);
     if (elements.editCategoryInput) elements.editCategoryInput.addEventListener('change', handleCategoryChange);
 
     // Tab Navigation
@@ -759,7 +881,7 @@ function init() {
     }
 
     // Initial Tab
-    switchTab('tab-home');
+    switchTab('tab-stats');
 
     // Time Range Filter
     document.querySelectorAll('.dropdown-item[data-range]').forEach(item => {
@@ -781,19 +903,22 @@ function init() {
     if (fixedExpensesToggle) {
         fixedExpensesToggle.addEventListener('change', (e) => {
             state.includeFixedExpenses = e.target.checked;
-            // renderCharts(state.transactions, state.settings, state.timeRange, state.includeFixedExpenses); // Charts removed
-            updateProjections();
+            updateStatsAndInsights(); // Fix: Ensure this is called
         });
     }
 
     // Auto-save settings on change
     if (elements.currentBalanceInput) {
         elements.currentBalanceInput.addEventListener('blur', () => {
-            const value = parseFloat(elements.currentBalanceInput.value);
-            if (!isNaN(value)) {
-                state.settings.currentBalance = value;
+            const userValue = parseFloat(elements.currentBalanceInput.value);
+            if (!isNaN(userValue)) {
+                // Calculate Adjustment: Adjustment = UserValue - CalculatedBalance
+                const calculated = calculateBalance(state.transactions);
+                state.settings.balanceAdjustment = userValue - calculated;
+
                 saveDB(state);
                 updateBalance();
+                updateStatsAndInsights(); // Update stats as balance changed
             }
         });
     }

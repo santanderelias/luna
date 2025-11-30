@@ -6,6 +6,7 @@
   "background_color": "#ffffff",
   "theme_color": "#0d6efd",
   "description": "A simple personal finance tracker.",
+  "version": "0.2.1",
   "icons": [
     {
       "src": "res/icon-192x192.png",

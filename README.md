@@ -13,3 +13,4 @@ app.js?v=2.1:465 [Intervention] Blocked call to navigator.vibrate because user h
 switchTab @ app.js?v=2.1:465
 init @ app.js?v=2.1:884
 - [ ] Granular items inside transactions with it's prices 
+- [ ] Update system

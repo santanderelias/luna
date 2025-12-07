@@ -140,38 +140,7 @@
                         <h5 class="card-title">Settings</h5>
 
                         <div class="accordion" id="settingsAccordion">
-                            <!-- Balance & Targets (New) -->
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingBalance">
-                                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#collapseBalance" aria-expanded="true"
-                                        aria-controls="collapseBalance">
-                                        Balance & Targets
-                                    </button>
-                                </h2>
-                                <div id="collapseBalance" class="accordion-collapse collapse show"
-                                    aria-labelledby="headingBalance" data-bs-parent="#settingsAccordion">
-                                    <div class="accordion-body">
-                                        <div class="mb-3">
-                                            <label for="current-balance" class="form-label">Current Balance
-                                                (Adjusted)</label>
-                                            <input type="number" class="form-control" id="current-balance"
-                                                placeholder="0.00">
-                                            <div class="form-text">Set this to your actual current money. The app will
-                                                calculate the adjustment needed.</div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="target-cash" class="form-label">Target Cash Amount</label>
-                                            <input type="number" class="form-control" id="target-cash"
-                                                placeholder="0.00">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="target-date" class="form-label">Target Date</label>
-                                            <input type="date" class="form-control" id="target-date">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+
 
                             <!-- General Settings -->
                             <div class="accordion-item">
@@ -214,6 +183,40 @@
                                                 placeholder="Amount">
                                             <button class="btn btn-outline-danger" type="button"
                                                 id="add-fixed-expense-btn">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <!-- Balance & Targets (New) -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingBalance">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseBalance" aria-expanded="true"
+                                        aria-controls="collapseBalance">
+                                        Balance & Targets
+                                    </button>
+                                </h2>
+                                <div id="collapseBalance" class="accordion-collapse collapse show"
+                                    aria-labelledby="headingBalance" data-bs-parent="#settingsAccordion">
+                                    <div class="accordion-body">
+                                        <div class="mb-3">
+                                            <label for="current-balance" class="form-label">Current Balance
+                                                (Adjusted)</label>
+                                            <input type="number" class="form-control" id="current-balance"
+                                                placeholder="0.00">
+                                            <div class="form-text">Set this to your actual current money. The app will
+                                                calculate the adjustment needed.</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="target-cash" class="form-label">Target Cash Amount</label>
+                                            <input type="number" class="form-control" id="target-cash"
+                                                placeholder="0.00">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="target-date" class="form-label">Target Date</label>
+                                            <input type="date" class="form-control" id="target-date">
                                         </div>
                                     </div>
                                 </div>

@@ -12,4 +12,5 @@ app.js?v=2.1:158 Elements initialized: {addModal: Ni, addAmountInput: input#add-
 app.js?v=2.1:465 [Intervention] Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
 switchTab @ app.js?v=2.1:465
 init @ app.js?v=2.1:884
-
+- [ ] Granular items inside transactions with it's prices 
+- [ ] Update system
